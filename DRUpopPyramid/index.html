@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Population Pyramid | California Department of Finance</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0" meta charset="UTF-8" />
+
+<!-- BEGIN STATE_TEMPLATE -->
+
+<!-- Public Sans Font
+Load the recommended Public Sans Font.  Removing this section will use System-UI font stack instead.
+
+More info on Typography here...
+https://template.webstandards.ca.gov/visual-design/typography.html
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,100..900;1,100..900&display=block"
+    rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap"
+    rel="stylesheet">
+<!-- End Public Sans Font -->
+
+<!-- STATE_TEMPLATE *** HEAD references ***
+  
+Include links to stylesheet and custom theme and core JS.
+  
+<link rel="stylesheet" href="ca_state_template/css/cagov.core.min.css"/>
+<link rel="stylesheet" href="ca_state_template/css/colortheme-oceanside.min.css"/>
+<script src="ca_state_template/js/cagov.core.min.js"></script>
+
+You may also use the CDN instead of using the local folder...
+
+<link rel="stylesheet" href="https://cdn.cdt.ca.gov/cdt/statetemplate/6.4.1/css/cagov.core.min.css" crossorigin="anonymous"/>
+<link rel="stylesheet" href="https://cdn.cdt.ca.gov/cdt/statetemplate/6.4.1/css/colortheme-oceanside.min.css" crossorigin="anonymous"/>
+<script src="https://cdn.cdt.ca.gov/cdt/statetemplate/6.4.1/js/cagov.core.min.js" crossorigin="anonymous"></script>
+
+More info on CDN here...
+https://template.webstandards.ca.gov/cdn.html
+
+-->
+<link rel="stylesheet" href="/ca_state_template/css/cagov.core.min.css" />
+<link rel="stylesheet" href="/ca_state_template/css/colortheme-oceanside.min.css" />
+<script src="/ca_state_template/js/cagov.core.min.js"></script>
+<!-- END STATE_TEMPLATE -->
+
+<link rel="apple-touch-icon-precomposed" sizes="100x100" href="/images/apple-touch-icon-precomposed.png" />
+<link rel="icon" sizes="192x192" href="/images/apple-touch-icon-192x192.png" />
+<link rel="apple-touch-icon-precomposed" sizes="180x180" href="/images/apple-touch-icon-180x180.png" />
+<link rel="apple-touch-icon-precomposed" sizes="152x152" href="/images/apple-touch-icon-152x152.png" />
+<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/images/apple-touch-icon-144x144.png" />
+<link rel="apple-touch-icon-precomposed" sizes="120x120" href="/images/apple-touch-icon-120x120.png" />
+<link rel="apple-touch-icon-precomposed" sizes="114x114" href="/images/apple-touch-icon-114x114.png" />
+<link rel="apple-touch-icon-precomposed" sizes="72x72" href="/images/apple-touch-icon-72x72.png" />
+<link rel="apple-touch-icon-precomposed" href="/images/apple-touch-icon-57x57.png" />
+<link rel="shortcut icon" href="/images/apple-touch-icon-57x57.png" />
+<link rel="apple-touch-icon" href="/images/apple-touch-icon.png" />
+<link rel="shortcut icon" href="/favicon.ico" />
+<!-- Statewide Alerts Server -->
+<script defer src="https://alert.cdt.ca.gov" crossorigin="anonymous"></script>
+<!-- BEGIN Google Tag Manager -->
+<!-- <link rel="preconnect" href="https://www.googletagmanager.com" />
+<link rel="preconnect" href="https://www.google-analytics.com" /> -->
+<!-- <script>
+    //*** BEGIN STATE TEMPLATE CHANGE REQUESTED
+    //Your GA4 Measurement ID that this website should use for website analytics
+    var yourGA4MeasurementId = "G-2LNG7V2TGM"; //Set to the default GA4 Measurement ID (G-75V2BNQ3D...R), please change it to the one for your organization.
+    //*** END STATE TEMPLATE CHANGE REQUESTED
+
+    //Support code to make this work, just leave this as is
+    var stateGTMAccount = "GTM-NJ6Q4MV"; //GTM-NJ6Q4MV - all ca.gov
+    (function (w, d, s, l, i) {
+        w[l] = w[l] || []; w[l].push({
+            'gtm.start':
+                new Date().getTime(), event: 'gtm.js'
+        }); var f = d.getElementsByTagName(s)[0],
+            j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+                'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+        (function () { dataLayer.push(arguments) })('config', yourGA4MeasurementId, { cookie_flags: 'secure;samesite=lax;domain=' });
+    })(window, document, 'script', 'dataLayer', stateGTMAccount);
+</script> -->
+<!-- END Google Tag Manager -->
+
+<!-- custom/overriding styles and scripts -->
+<link rel="stylesheet" href="/css/styles.css">
+<script src="/js/custom-footer.js"></script>
+
+  <!-- Variable needed to set the active nav item in nav-handler.js -->
+  <!-- To set the active link, uncomment the following block and set current page -->
+  <!-- Options: 'home', budget', 'accounting', 'forecasting', 'reports', 'programs', 'careers', 'whats-new', 'quick-links'-->
+  <link rel="canonical" href="https://dof.ca.gov/forecasting/Demographics/Data-In-Action/Visualizations">
+  <script>
+    window.CURRENT_PAGE = 'Pop Pyramid';
+  </script>
+</head>
+
+<body class="primary">
+  <header role="banner" id="header" class="global-header fixed">
+  <div id="skip-to-content">
+    <a href="#main-content">Skip to Main Content</a>
+  </div>
+  <div class="utility-header">
+    <div class="container">
+      <div class="flex-row">
+        <div class="social-media-links">
+          <div class="header-cagov-logo">
+            <a href="https://ca.gov">
+              <span class="sr-only">CA.gov</span>
+              <span class="ca-gov-logo-svg"></span>
+            </a>
+          </div>
+          <p class="official-tag">
+            <span class="desktop-only">Official website of the</span>
+            State of California
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- header branding with light gray background -->
+  <div class="section-default">
+    <div class="branding">
+      <div class="header-organization-banner">
+        <a href="/index.html">
+          <img src="/images/template-logo.png" class="logo-img" alt="DOF Logo" />
+        </a>
+      </div>
+    </div>
+  </div>
+  <!-- mobile navigation controls -->
+  <div class="mobile-controls">
+    <span class="mobile-control-group mobile-header-icons">
+      <!-- Add more mobile controls here. These will be on the right side of the mobile page header section -->
+    </span>
+    <div class="mobile-control-group main-nav-icons">
+
+      <button id="nav-icon3" type="button" class="mobile-control toggle-menu" aria-expanded="false"
+        aria-controls="navigation">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span class="sr-only">Menu</span>
+      </button>
+    </div>
+  </div>
+  <div class="navigation-search full-width-nav container">
+    <div id="head-search" class="search-container featured-search">
+      <div class="container">
+        <form id="Search" class="pos-rel" action="/SERP/">
+          <span class="sr-only" id="SearchInput">Custom Google Search</span>
+          <input type="search" name="q" aria-labelledby="SearchInput" placeholder="Search" class="search-textfield" />
+          <button type="submit" class="gsc-search-button">
+            <span class="ca-gov-icon-search" aria-hidden="true"></span>
+            <span class="sr-only">Submit</span>
+          </button>
+          <div class="close-search-btn">
+            <button class="close-search gsc-clear-button border-0 bg-transparent pos-rel" type="reset">
+              <span class="sr-only">Close</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <nav id="navigation" class="main-navigation dropdown" aria-label="Main navigation">
+      <ul id="nav_list" class="top-level-nav">
+        <li class="nav-item">
+          <a class="first-level-link" href="/budget/" data-nav-id="budget">Budget</a>
+        </li>
+        <li class="nav-item">
+          <a class="first-level-link" href="/accounting/" data-nav-id="accounting">Accounting</a>
+        </li>
+        <li class="nav-item">
+          <a class="first-level-link" href="/forecasting/" data-nav-id="forecasting">Forecasting</a>
+        </li>
+        <li class="nav-item">
+          <a class="first-level-link" href="/reports/" data-nav-id="reports">Reports</a>
+        </li>
+        <li class="nav-item">
+          <a class="first-level-link" href="/programs/" data-nav-id="programs">Programs</a>
+        </li>
+        <li class="nav-item">
+          <a class="first-level-link" href="/about-us/" data-nav-id="about-us">About Us</a>
+        </li>
+        <li class="nav-item">
+          <a class="first-level-link" href="/about-us/careers/" data-nav-id="careers">Careers</a>
+        </li>
+        <li class="nav-item">
+          <a class="first-level-link" href="/whats-new/" data-nav-id="whats-new">What's New</a>
+        </li>
+        <li class="nav-item">
+          <a class="first-level-link" href="/quick-links/" data-nav-id="quick-links">Quick Links</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+  <script src="/js/nav-handler.js"></script>
+</header>
+  <div id="main-content" class="main-content dof-min-page-height">
+    <main class="main-primary m-b-60" id="main">
+      <div class="container p-t-0">
+        <div class="m-t-md" id="breadcrumb-container"></div>
+        <h1 class="p-t-0">Population Pyramid</h1>
+        <!-- BEGIN insert main content code -->
+
+          <link rel="stylesheet" type="text/css" href="/css/pyramid_rev.css">
+
+          <div class="pyr_main">
+          <div style="padding-top: 15px">
+              <p style="margin-bottom: 0; text-align:center;"><b>Population Estimates and Projections for California and its Counties</b></p>
+              <p style="margin-top: 0; text-align:center;">Estimates and projections by 5-year age group and sex for the years 1970 to 2070</p>
+          </div>
+
+              <!-- <div class="col1 left">  -->
+              <div class="left">
+                  <div id="pyr_holder" style="border-radius: 5px;" onclick="void(0)"></div>
+                  <div style="text-align: center;">
+                      <button class="btn btn-primary" id="imgDL2" style="font-size: .75rem;">Download Pyramid As PNG</button>
+                  </div>
+                  <div style="margin-top: .75em;">
+                      <p class="instrc">Note: To display age-group population counts by sex and total, hover over a blue rectangle on the pyramid.</p>
+                  </div>
+              </div>
+              
+              <!-- <div id="slider" class="col1 middle" style="padding-left: 1em;"> -->
+              <div id="slider" class="middle">
+                  <div id="pjyr" style="height: 50px;">
+                      <p id="box" class="box"></p>
+                      <p style="font-size: 12px;">Fill<br>Year</p>
+                  </div>
+                  <div id="sliderHolder" class="xl noPrint d3-slider d3-slider-vertical"></div>
+              </div>
+              <!-- <div id="slider2" class="col1 middle"> -->
+              <div id="slider2" class="middle"> 
+                  <div id="pjyr2" style="height: 50px;">
+                      <p id="box2" class="box"></p>
+                      <p style="font-size: 12px;">Outline<br>Year</p>
+                  </div>
+                  <div id="sliderHolder2" class="xl noPrint d3-slider d3-slider-vertical"></div>
+              </div>
+              <!-- <div><button id="imgDL2" style="margin-top: 12px;">Download Pyramid As PNG</button> <!- - <button id="imgDL2">Save As PNG</button> - -> </div> -->
+              
+              <div id="interface" class="right">
+                  <div id="yrPulldown">
+                      <p style="margin-bottom: 0; font-size: 1rem;"><b>Area</b></p>
+                      <!-- <div class="custom-select" style="margin-top: 0; width: 200px;"> -->
+                      <div style="margin-top: 0; width: 200px; font-size: 1rem;">
+                          <select name="Area" id="area"> <!-- size="15"> -->
+                              <option value="1">California</option>
+                              <!-- <option value="6001">Alameda County</option>
+                              <option value="6003">Alpine County</option>
+                              <option value="6067">Sacramento County</option> -->
+                              <option value="6001">Alameda County</option>
+                              <option value="6003">Alpine County</option>
+                              <option value="6005">Amador County</option>
+                              <option value="6007">Butte County</option>
+                              <option value="6009">Calaveras County</option>
+                              <option value="6011">Colusa County</option>
+                              <option value="6013">Contra Costa County</option>
+                              <option value="6015">Del Norte County</option>
+                              <option value="6017">El Dorado County</option>
+                              <option value="6019">Fresno County</option>
+                              <option value="6021">Glenn County</option>
+                              <option value="6023">Humboldt County</option>
+                              <option value="6025">Imperial County</option>
+                              <option value="6027">Inyo County</option>
+                              <option value="6029">Kern County</option>
+                              <option value="6031">Kings County</option>
+                              <option value="6033">Lake County</option>
+                              <option value="6035">Lassen County</option>
+                              <option value="6037">Los Angeles County</option>
+                              <option value="6039">Madera County</option>
+                              <option value="6041">Marin County</option>
+                              <option value="6043">Mariposa County</option>
+                              <option value="6045">Mendocino County</option>
+                              <option value="6047">Merced County</option>
+                              <option value="6049">Modoc County</option>
+                              <option value="6051">Mono County</option>
+                              <option value="6053">Monterey County</option>
+                              <option value="6055">Napa County</option>
+                              <option value="6057">Nevada County</option>
+                              <option value="6059">Orange County</option>
+                              <option value="6061">Placer County</option>
+                              <option value="6063">Plumas County</option>
+                              <option value="6065">Riverside County</option>
+                              <option value="6067">Sacramento County</option>
+                              <option value="6069">San Benito County</option>
+                              <option value="6071">San Bernardino County</option>
+                              <option value="6073">San Diego County</option>
+                              <option value="6075">San Francisco County</option>
+                              <option value="6077">San Joaquin County</option>
+                              <option value="6079">San Luis Obispo County</option>
+                              <option value="6081">San Mateo County</option>
+                              <option value="6083">Santa Barbara County</option>
+                              <option value="6085">Santa Clara County</option>
+                              <option value="6087">Santa Cruz County</option>
+                              <option value="6089">Shasta County</option>
+                              <option value="6091">Sierra County</option>
+                              <option value="6093">Siskiyou County</option>
+                              <option value="6095">Solano County</option>
+                              <option value="6097">Sonoma County</option>
+                              <option value="6099">Stanislaus County</option>
+                              <option value="6101">Sutter County</option>
+                              <option value="6103">Tehama County</option>
+                              <option value="6105">Trinity County</option>
+                              <option value="6107">Tulare County</option>
+                              <option value="6109">Tuolumne County</option>
+                              <option value="6111">Ventura County</option>
+                              <option value="6113">Yolo County</option>
+                              <option value="6115">Yuba County</option>
+                          </select> 
+                      </div> 
+                      <!-- <p style="margin-bottom: 0;"><b>Base Year</b></p>
+                      <p style="margin-top: 0">
+                          <select name="byr" id="byr">
+                              <option selected="selected" value="2010">2010</option>
+                              <option value="2011">2011</option>
+                              <option value="2025">2025</option>
+                              <option value="2050">2050</option>
+                          </select>
+                      </p>
+
+                      <p style="margin-bottom: 0;"><b>Projection Year</b></p>
+                      <p style="margin-top: 0">
+                          <select name="pyr" id="pyr">
+                              <option selected="selected" value="2010">2010</option>
+                              <option value="2025">2025</option>
+                              <option value="2050">2050</option>
+                          </select>
+                      </p> -->
+
+                  </div>
+                  <div id="age_tbl" style="border-radius: 5px;">
+                      <div>
+                          <p style="margin-bottom:0; padding-top: 10px; font-size: 12pt; font-weight: bold; text-align: center;">Population by age group</p>
+                          <table><tr>
+                              <td id="plc" class="td1">California</td>
+                              <td class="td1">&nbsp;&ndash;&nbsp;</td>
+                              <td id="yr" class="td2">2020</td></tr>
+                          </table>
+                      </div>
+                      <div id="data">        
+                          <table>
+                              <tr >
+                                  <td id="tAge" style="text-align: left;">Age</td>
+                                  <td id="tMill">Persons</td>
+                                  <td id="tRatio">Pct</td>
+                              </tr>
+                              <tr class="above">
+                                  <td class="ageLimitTxt" id="txUp"></td>
+                                  <td id="oldAbs"></td>
+                                  <td id="oldPerc"></td>
+                              </tr>
+                              <tr>
+                                  <td class="ageLimitTxt" id="txMed"></td>
+                                  <td id="mediumAbs"></td>
+                                  <td id="mediumPerc"></td>
+                              </tr>
+                              <tr>
+                                  <td class="ageLimitTxt" id="txLow"></td>
+                                  <td id="youngAbs"></td>
+                                  <td id="youngPerc"></td>
+                              </tr>
+                              <tr class="above">
+                                  <td id="tTotal" style="text-align: left;">Total</td>
+                                  <td id="totals"></td>
+                                  <td >100%</td>
+                              </tr>
+                          </table>
+                          <p id="altQ" class="xl"></p>
+                          <!-- <div id="vars"></div> -->
+                      </div>
+                  </div>
+                          
+                  <div id="map"></div> <!-- style="margin-bottom: 15px; border-radius: 5px;"></div> -->
+                  
+                  <div style="text-align: center;">
+                      <form method="get" action="/data/caprojdata5yr_1970-2070.csv">
+                      <button class = "btn btn-primary" style="width:100%; font-size: .75rem;" type="submit">Download Data File (.csv)</button>
+                      </form>
+                  </div>
+                  
+              </div>
+              <div class="r-right">    
+                  <div id="frame1" class="frames" ></div>
+                  <div id="frame2" class="frames" style="margin-top:12px; margin-bottom:12px;"></div>
+                  <div style="margin-left: 1.5em;">
+                      <p style="font-size: 14px; margin-top:0; margin-bottom: 0;">Sources:</p>
+                      <p style="font-size: 14px; margin-top:0; margin-bottom: 0;">1970-2019: California Department of Finance, Demographic Research Unit, <a href="http://dof.ca.gov/Forecasting/Demographics/Estimates/" target="_blank">Annual Intercensal Population Estimates</a></p>
+                      <p style="font-size: 14px; margin-top:0; margin-bottom: 0;">2020-2070: California Department of Finance, Demographic Research Unit, <a href="http://dof.ca.gov/Forecasting/Demographics/Projections/" target="_blank">Population Projections</a></p>
+                      <p style="font-size: 14px; margin-top:0;">Last Update: November 2025</p>
+                  </div>
+              </div>    
+
+
+              <!-- <div id="map" class="col1 r-right"></div> -->
+
+          </div>
+
+          <script src='/js/jquery.js'></script>
+          <script src="/js/d3.js"></script>
+          <script src="/js/saveSvgAsPng.js"></script>
+          <script src="/js/d3.slider_v3_revised.js"></script>
+          <!-- <script src="//d3js.org/topojson.v1.min.js"></script> -->
+          <script src="/js/pyramid_revised.js"></script>
+
+
+        <!-- END insert main content code -->
+      </div>
+    </main>
+  </div>
+  <footer id="footer" class="global-footer p-t-md">
+    <div class="container">
+        <div class="d-flex">
+            <a href="https://ca.gov" class="cagov-logo">
+                <span class="sr-only">CA.gov</span>
+                <span class="ca-gov-logo-svg"></span>
+            </a>
+            <ul class="footer-links text-1rem">
+                <li><a href="/site-map/">Site Map</a></li>
+                <li><a href="/accessibility/">Accessibility</a></li>
+                <li><a href="/conditions-of-use/">Conditions of Use</a></li>
+                <li><a href="/privacy-policy/">Privacy Policy</a></li>
+                <li><a href="/guidelines-to-access-public-records/">Public Records Request</a></li>
+                <li><a href="/department-mailing-lists/">Mailing Lists</a></li>
+                <li><a href="/contact-us/">Contact Us</a></li>
+            </ul>
+            <div class="socialsharer-container">
+                <a class="ca-gov-icon-share-twitter font-size-25" title="Twitter Link"
+                    href="https://twitter.com/HDatFinance"></a>
+                <a class="ca-gov-icon-share-youtube font-size-25" title="Youtube Link"
+                    href="https://www.youtube.com/@californiadepartmentoffina6442"></a>
+                <a class="ca-gov-icon-share-linkedin font-size-25" title="Linkedin Link"
+                    href="https://www.linkedin.com/company/california-department-of-finance/"></a>
+                <a class="ca-gov-icon-share-email font-size-25" title="Email Link"
+                    href="mailto:webmaster@dof.ca.gov"></a>
+            </div>
+
+        </div>
+    </div>
+    <!-- Accessible, translatable, Copyright Statement -->
+    <div class="copyright">
+        <div class="container">
+            <span aria-hidden="true">&copy;</span>
+            <span id="thisyear">
+                <script>
+                    document.getElementById('thisyear').appendChild(document.createTextNode(new Date().getFullYear()))
+                </script>
+            </span>
+            State of California
+        </div>
+    </div>
+    <button class="return-top">
+        <span class="sr-only">Back to top</span>
+    </button>
+</footer>
+<!-- Extra Decorative Content -->
+<div class="decoration-last">&nbsp;</div>
+<script src="/js/breadcrumb.js"></script>
+</body>
+
+</html>
