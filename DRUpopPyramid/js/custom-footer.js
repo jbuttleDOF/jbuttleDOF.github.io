@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
     loadFooterFromFile('DOFfooter', '/includes/custom-footer-budget.html', footer);
     console.log('Budget footer loaded');
   } else if (/^\/forecasting\//.test(pathname)) {
-    loadFooterFromFile('DOFfooter', '/includes/custom-footer-forecasting.html', footer);
+    loadFooterFromFile('DOFfooter', '/DRUpopPyramid/includes/custom-footer-forecasting.html', footer);
     console.log('Forecasting footer loaded');
   } else if (/^\/programs\//.test(pathname)) {
     loadFooterFromFile('DOFfooter', '/includes/custom-footer-programs.html', footer);
@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function () {
     loadFooterFromFile('DOFfooter', '/includes/custom-footer-reports.html', footer);
     console.log('Reports footer loaded');
   } else { // Default case - apply default footer for any other path
-    loadFooterFromFile('DOFfooter', '/includes/custom-footer-default.html', footer);
+    loadFooterFromFile('DOFfooter', '/DRUpopPyramid/includes/custom-footer-default.html', footer);
     console.log('Default footer loaded');
   }
 
