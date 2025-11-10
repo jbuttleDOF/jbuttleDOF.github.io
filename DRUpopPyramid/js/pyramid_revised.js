@@ -230,7 +230,7 @@ var baseyears = svg.append("g")
 
 var dsv = d3.dsv(",","text/plain");
 
-dsv("/data/caprojdata5yr_1970-2070.csv", function(csv){
+dsv("/DRUpopPyramid/data/caprojdata5yr_1970-2070.csv", function(csv){
 
 	csv1 = csv;
 
@@ -741,7 +741,7 @@ dsv("/data/caprojdata5yr_1970-2070.csv", function(csv){
 		.style("font-color","white")
 		.text(function(d,i) {return legendText[i]; });
 
-	d3.json('/data/cb_2014_us_county_5m.json', function(error, ca1) {
+	d3.json('/DRUpopPyramid/data/cb_2014_us_county_5m.json', function(error, ca1) {
 		if (error) throw error;
 
 		ca = ca1;
