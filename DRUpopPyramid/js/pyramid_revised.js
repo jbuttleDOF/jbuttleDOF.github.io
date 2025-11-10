@@ -230,7 +230,7 @@ var baseyears = svg.append("g")
 
 var dsv = d3.dsv(",","text/plain");
 
-dsv("/DRUpopPyramid/data/caprojdata5yr_1970-2070.csv", function(csv){
+dsv("/data/caprojdata5yr_1970-2070.csv", function(csv){
 
 	csv1 = csv;
 
@@ -461,14 +461,14 @@ dsv("/DRUpopPyramid/data/caprojdata5yr_1970-2070.csv", function(csv){
 			xTxt2 = 75;
 			yTxt2 = 110;
 		} else if( $(window).width() > 799){
-			xPlc1 = 50;
-			yPlc1 = 40;
-			xPlc2 = 50;
-			yPlc2 = 80;
-			xTxt1 = 105;
-			yTxt1 = 65;
-			xTxt2 = 105;
-			yTxt2 = 105;
+			xPlc1 = 50-20;
+			yPlc1 = 40-30;
+			xPlc2 = 50+80;
+			yPlc2 = 45;
+			xTxt1 = 105-40;
+			yTxt1 = 65-30;
+			xTxt2 = 105+60;
+			yTxt2 = 70;
 		}
 
 	svg.append("rect")
@@ -476,7 +476,7 @@ dsv("/DRUpopPyramid/data/caprojdata5yr_1970-2070.csv", function(csv){
 		.attr("x", xPlc1)
 		.attr("y", yPlc1)
 		.attr("height", 30)
-		.attr("width", 50)
+		.attr("width", 30)
 		.style("fill", tmpFcolor)
 		;//.style("fill-opacity", 0.5);
 
@@ -495,10 +495,10 @@ dsv("/DRUpopPyramid/data/caprojdata5yr_1970-2070.csv", function(csv){
 
 	svg.append("rect")
 		.attr("class", "bsyr")
-		.attr("x", xPlc2)
-		.attr("y", yPlc2)
+		.attr("x", xPlc1)
+		.attr("y", yPlc2) // yPlc2
 		.attr("height", 30)
-		.attr("width", 50)
+		.attr("width", 30)
 		.style("fill", "none")
 		.style("stroke", "black")
 		.style("stroke-width", "1");
@@ -506,8 +506,8 @@ dsv("/DRUpopPyramid/data/caprojdata5yr_1970-2070.csv", function(csv){
 
 	byTitle = svg.append("text")
 		.attr("class","title")
-		.attr("x", xTxt2)
-		.attr("y", yTxt2)
+		.attr("x", xTxt1)
+		.attr("y", yTxt2) // yTxt2
 		.style("font-size", tSize)
 		.text(bsyear); 
 
@@ -519,7 +519,7 @@ dsv("/DRUpopPyramid/data/caprojdata5yr_1970-2070.csv", function(csv){
 
 	geo_title = svg.append("text")
 		.attr("class","geoTitle")
-		.attr("transform", "translate(" + (width+centerPadding)+",0"+ (height * 0.10) + ")")
+		.attr("transform", "translate(" + (width+centerPadding+20)+","+ (35) + ")") // height * 0.10
 		.attr("x", width / 2 + 20)
 		.attr("text-anchor","middle")
 		//.attr("x", (width+5)*(3/2))
@@ -529,7 +529,7 @@ dsv("/DRUpopPyramid/data/caprojdata5yr_1970-2070.csv", function(csv){
 
 	geo_cnty = svg.append("text")
 		.attr("class","geoTitle")
-		.attr("transform", "translate(" + (width+centerPadding)+",0"+ (height * 0.10) + ")")
+		.attr("transform", "translate(" + (width+centerPadding+20)+","+ (35) + ")") // height * 0.10
 		.attr("x", width / 2 + 20)
 		.attr("text-anchor","middle")
 		.attr("y", 0)
@@ -565,8 +565,8 @@ dsv("/DRUpopPyramid/data/caprojdata5yr_1970-2070.csv", function(csv){
 		.domain([-.5, 0, .5, 1.0])
 		.range(['#d7191c','#fdae61','#ffffbf','#abd9e9','#2c7bb6']);
 
-	legendColors = ['#d7191c','#fdae61','#ffffbf','#abd9e9','#2c7bb6'];
-	legendText = ['','-0.5%','0%','0.5%','1%'];
+	legendColors = ['#d7191c','#fdae61','#ffffbf','#abd9e9']; // ,'#2c7bb6'
+	legendText = ['','-0.5%','0%','0.5%']; // ,'1%'
 
 	var csvFilter = csv.filter(function(d) {return (d.year == '2010' || d.year == '2070'); })
 
@@ -697,10 +697,11 @@ dsv("/DRUpopPyramid/data/caprojdata5yr_1970-2070.csv", function(csv){
 		.text("California: " + avgChgCA[1]["pctAllCA"].toFixed(4) + "%");
 
 	var legend = svgj.append("svg")
-			.attr("id","legend");
+			.attr("id","legend")
+			.attr("transform", "translate(" + (10) + ",0)");
 
 	var legenditem = legend.selectAll(".legenditem")
-		.data(d3.range(5))
+		.data(d3.range(4)) // .data(d3.range(5))
 		.enter()
 		.append("svg")
 		.attr("class", "legenditem")
@@ -740,7 +741,7 @@ dsv("/DRUpopPyramid/data/caprojdata5yr_1970-2070.csv", function(csv){
 		.style("font-color","white")
 		.text(function(d,i) {return legendText[i]; });
 
-	d3.json('/DRUpopPyramid/data/cb_2014_us_county_5m.json', function(error, ca1) {
+	d3.json('/data/cb_2014_us_county_5m.json', function(error, ca1) {
 		if (error) throw error;
 
 		ca = ca1;
@@ -842,13 +843,27 @@ dsv("/DRUpopPyramid/data/caprojdata5yr_1970-2070.csv", function(csv){
 
 	x1 = d3.scale.linear().range([0,wj])
 		.domain(d3.extent(allLine, function(d) { return d.year; }));
+
 	y1 = d3.scale.linear().range([hj,0])
 		.domain([minLine/1.5, maxLine*1.125]);
 
+	
+	if( $('.r-right').width() < 900) { 
 	xAxis2 = d3.svg.axis().scale(x1)
 				.orient("bottom")
-				.ticks(7)
+				//.ticks(10)
+				.tickValues([1980, 2000, 2025, 2050, 2070])
 				.tickFormat(d3.format("d"));
+	}
+
+	if( $('.r-right').width() >= 900) { 
+	xAxis2 = d3.svg.axis().scale(x1)
+				.orient("bottom")
+				//.ticks(10)
+				.tickValues([1970, 1980, 1990, 2000, 2010, 2020, 2025, 2030, 2040, 2050, 2060, 2070])
+				.tickFormat(d3.format("d"));
+	}
+
 
 	yAxis2 = d3.svg.axis().scale(y1)
 				.orient("left")
@@ -923,23 +938,12 @@ dsv("/DRUpopPyramid/data/caprojdata5yr_1970-2070.csv", function(csv){
 		.attr("class", "y1Axis")
 		//.attr("transform", "translate(" + (0) + ", 0)")
 		.call(yAxis2);
-	
-	/* svgb1.append("line")
-		.attr("class", "line2010")
-		.attr("x1", x1(2010))
-		.attr("y1", 0)
-		.attr("x2", x1(2010))
-		.attr("y2", hj)
-		.style("stroke","black")
-		.style("stroke-width",1)
-		.style("stroke-dasharray",2)
-		;
-	*/
+
 	svgb1.append("line")
 		.attr("class", "line2020")
-		.attr("x1", x1(2020))
+		.attr("x1", x1(2025))
 		.attr("y1", 0)
-		.attr("x2", x1(2020))
+		.attr("x2", x1(2025))
 		.attr("y2", hj)
 		.style("stroke","black")
 		.style("stroke-width",1)
@@ -955,7 +959,7 @@ dsv("/DRUpopPyramid/data/caprojdata5yr_1970-2070.csv", function(csv){
 	}
 
 	svgb1.append("text")
-		.attr("transform", "translate("+(x1(2020) - 10)+ "," + labH + ")") // 40
+		.attr("transform", "translate("+(x1(2025) - 10)+ "," + labH + ")") // 40
 		.attr("text-anchor", "end")
 		.style("font-size", "14px")
 		.style("fill", "black")
@@ -963,7 +967,7 @@ dsv("/DRUpopPyramid/data/caprojdata5yr_1970-2070.csv", function(csv){
 		.text("\u27F8"+" Estimates");
 	
 	svgb1.append("text")
-		.attr("transform", "translate("+(x1(2020) + 10)+ "," + labH + ")")
+		.attr("transform", "translate("+(x1(2025) + 10)+ "," + labH + ")")
 		//.attr("text-anchor", "start")
 		.style("font-size", "14px")
 		.style("fill", "black")
@@ -1626,15 +1630,19 @@ function calcAgegroups() {
 		//console.log(data[year]);
 	}
 
+	console.log("young: "+young)
+
 	for (var j=ageLimits[0];j<ageLimits[1];j+=5)	{
 		medium += data[year][year-j][0] + data[year][year-j][1];
 		//console.log(medium);
 	}
+	console.log("medium: "+medium)
 
 	for (var k=ageLimits[1];k<=100;k+=5)	{
 		old += data[year][year-k][0] + data[year][year-k][1];
 		//console.log(medium);
 	}
+	console.log("old: "+old)
 
 	// Total Pop incl. 100+ AGE GROUP (males and females)
 	// var tmpVariantInt = +tmpVariant.split("v")[1]; 
@@ -1653,10 +1661,31 @@ function calcAgegroups() {
 	d3.select("#totals").text(mill(Math.round(sum)));
 
 	//d3.select("#altQ").text(medianAge[language]+" "+mill(datacsv[year].m[tmpVariantInt][0].Median)+"\xa0 \xa0 | \xa0 \xa0"+oldAgeDepRatio[language]+"\xa0"+full(OldPercMed));
-	d3.select("#altQ").html("Median age "+parseFloat(datacsv[geo][year]["m"][0]["mage_bothsexes"]).toFixed(1)+"<br/>"+"Old-age dependency ratio\xa0"+full(OldPercMed));
+	d3.select("#altQ").html("Median age "+parseFloat(datacsv[geo][year]["m"][0]["mage_bothsexes"]).toFixed(1)+"<br/>"+"Old-age dependency ratio:\xa0"+full(OldPercMed)+" "+"<button style='padding:0; border: none;' class='btn' id='openPU'>&#128196</button>"); 
 	d3.select("#youngPerc").text(perc(young/sum));
 	d3.select("#mediumPerc").text(perc(medium/sum));
 	d3.select("#oldPerc").text(perc(old/sum));
+
+
+	// SCRIPT TO CONTROL POP-UP
+	const openPopupBtn = document.getElementById('openPU');
+	const closePopupBtn = document.getElementById('closePopupBtn');
+	const myPopup = document.getElementById('adPopup');
+
+	openPopupBtn.addEventListener('click', () => {
+		myPopup.style.display = 'flex'; // Show the popup
+	});
+
+	closePopupBtn.addEventListener('click', () => {
+		myPopup.style.display = 'none'; // Hide the popup
+	});
+
+	// Optional: Close popup when clicking outside the content
+	myPopup.addEventListener('click', (event) => {
+		if (event.target === myPopup) {
+			myPopup.style.display = 'none';
+		}
+	});
 
 }
 
