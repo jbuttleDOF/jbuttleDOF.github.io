@@ -36,8 +36,8 @@ var	year1=2070,
 	age1=100,
 	//year=bsyear=2010,
 	year0=1970,
-	bsyear=2010, // bsyear=2000,
-	year=2020, // year=2010,
+	bsyear=2020, // bsyear=2010,
+	year=2025, // year=2020,
 	clickBirthYear = 0,
 	nrXticks = 7,
 	nrYticks = 5,
@@ -196,10 +196,12 @@ var wAxis = d3.svg.axis()
 var svg = d3.select("#pyr_holder").append("svg")
 	.attr("width", (width + margin.left + margin.right)*2+centerPadding)
 	.attr("height", height + margin.top + margin.bottom + 10)
+	.attr("id", "popPyr")
 	.append("g")
 		.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-var svg2 = d3.select("#box").append("svg").attr("width", 25).attr("height", 25);
+
+		var svg2 = d3.select("#box").append("svg").attr("width", 25).attr("height", 25);
 
 svg2.append("rect")
 		.attr("x", 0)
@@ -230,7 +232,7 @@ var baseyears = svg.append("g")
 
 var dsv = d3.dsv(",","text/plain");
 
-dsv("/DRUpopPyramid/data/caprojdata5yr_1970-2070.csv", function(csv){
+dsv("/data/caprojdata5yr_1970-2070.csv", function(csv){
 
 	csv1 = csv;
 
@@ -265,7 +267,8 @@ dsv("/DRUpopPyramid/data/caprojdata5yr_1970-2070.csv", function(csv){
 		
 	svg.append("g")
 		.attr("class", "x axis")
-		.attr("transform", "translate(0," + height + ")")
+		.attr("transform", "translate(0," + height + ")")		
+		.style("font-family", "sans-serif")
 		.call(xAxis)
 		/*.append("text")
 		.attr("x",width/1.75)
@@ -282,13 +285,15 @@ dsv("/DRUpopPyramid/data/caprojdata5yr_1970-2070.csv", function(csv){
 		.attr("y", 35)
 		.attr("class", "xAxisLabel")
 		.attr("font-size","12pt")
-		.attr("font-weight", "bold")
+		.attr("font-weight", "bold")		
+		.style("font-family", "sans-serif")
 		.attr("fill", "darkslategray")
 		.text("Male")
 	
 	svg.append("g")
 		.attr("class", "w axis")
-		.attr("transform", "translate(" + (width+centerPadding)+","+ height + ")")
+		.attr("transform", "translate(" + (width+centerPadding)+","+ height + ")")		
+		.style("font-family", "sans-serif")
 		.call(wAxis)
 		/*.append("text")
 		.attr("x",120)
@@ -305,7 +310,8 @@ dsv("/DRUpopPyramid/data/caprojdata5yr_1970-2070.csv", function(csv){
 		.attr("text-anchor", "middle")
 		.attr("class", "xAxisLabel")
 		.attr("font-size","12pt")		
-		.attr("font-weight", "bold")
+		.attr("font-weight", "bold")		
+		.style("font-family", "sans-serif")
 		.attr("fill", "darkslategray")
 		.text("Female");
 
@@ -425,6 +431,7 @@ dsv("/DRUpopPyramid/data/caprojdata5yr_1970-2070.csv", function(csv){
 		.attr("y", function(age) { return y(year1 - age); }) // may be an issue with the original: year1 instead of year
 		.attr("x", width + centerPadding/2)
 		.attr("dy", ".3em")
+		.style("font-family", "sans-serif")
 		.text(function(age) { return age; });
 
 
@@ -436,30 +443,36 @@ dsv("/DRUpopPyramid/data/caprojdata5yr_1970-2070.csv", function(csv){
 		.text("Age Structure") */
 
 	//GEO TEXT SIZE BASED ON WINDOW SIZE
-	if( $(window).width() < 400 ) {
-			tSize = '15px'
-		} else if( $(window).width() > 399 ) {
-			tSize = '20px'
+	if( $(window).width() < 1025 ) { // 600
+			tSize = '15px';			
+		} else if( $(window).width() > 1024 ) { // 599
+			tSize = '20px';
 		}
 	//RECTANGLE AND YEAR TEXT PLACEMENT BASED ON WINDOW SIZE
-	if( $(window).width() < 425 ) {
+	if( $(window).width() < 500 ) { // 425
 			xPlc1 = 5;
-			yPlc1 = 20;
+			yPlc1 = 0; // 20
 			xPlc2 = 5;
-			yPlc2 = 60;
-			xTxt1 = 60;
-			yTxt1 = 42;
+			yPlc2 = 30;
+			xTxt1 = 30;
+			yTxt1 = 15; // 35
 			xTxt2 = 60;
-			yTxt2 = 82;
-		} else if( ($(window).width() > 424) & ($(window).width() < 800)) {
+			yTxt2 = 45;
+			bxsize = 20;
+			ytgeo = 15; //25
+			xtgeo = width+centerPadding+10;
+		} else if( ($(window).width() > 499) & ($(window).width() < 800)) { // 424 800
 			xPlc1 = 20;
-			yPlc1 = 35;
+			yPlc1 = 15;
 			xPlc2 = 20;
-			yPlc2 = 85;
-			xTxt1 = 75;
-			yTxt1 = 60;
+			yPlc2 = 55; // 85
+			xTxt1 = 55; // 75
+			yTxt1 = 35; // 60
 			xTxt2 = 75;
-			yTxt2 = 110;
+			yTxt2 = 75; //110
+			bxsize = 30;
+			ytgeo = 35;
+			xtgeo = width+centerPadding+20;
 		} else if( $(window).width() > 799){
 			xPlc1 = 50-20;
 			yPlc1 = 40-30;
@@ -469,14 +482,17 @@ dsv("/DRUpopPyramid/data/caprojdata5yr_1970-2070.csv", function(csv){
 			yTxt1 = 65-30;
 			xTxt2 = 105+60;
 			yTxt2 = 70;
+			bxsize = 30;
+			ytgeo = 35; // 35
+			xtgeo = width+centerPadding+20;
 		}
 
 	svg.append("rect")
 		.attr("class", "agestruc")
 		.attr("x", xPlc1)
 		.attr("y", yPlc1)
-		.attr("height", 30)
-		.attr("width", 30)
+		.attr("height", bxsize)
+		.attr("width", bxsize)
 		.style("fill", tmpFcolor)
 		;//.style("fill-opacity", 0.5);
 
@@ -485,6 +501,7 @@ dsv("/DRUpopPyramid/data/caprojdata5yr_1970-2070.csv", function(csv){
 		.attr("x", xTxt1)
 		.attr("y", yTxt1)
 		.style("font-size", tSize )
+		.style("font-family", "sans-serif")
 		.text(year); 
 
 	/*svg.append("text")
@@ -497,8 +514,8 @@ dsv("/DRUpopPyramid/data/caprojdata5yr_1970-2070.csv", function(csv){
 		.attr("class", "bsyr")
 		.attr("x", xPlc1)
 		.attr("y", yPlc2) // yPlc2
-		.attr("height", 30)
-		.attr("width", 30)
+		.attr("height", bxsize)
+		.attr("width", bxsize)
 		.style("fill", "none")
 		.style("stroke", "black")
 		.style("stroke-width", "1");
@@ -508,28 +525,30 @@ dsv("/DRUpopPyramid/data/caprojdata5yr_1970-2070.csv", function(csv){
 		.attr("class","title")
 		.attr("x", xTxt1)
 		.attr("y", yTxt2) // yTxt2
-		.style("font-size", tSize)
+		.style("font-size", tSize)		
+		.style("font-family", "sans-serif")
 		.text(bsyear); 
 
-	if($(window).width() < 600) {
+	if($(window).width() < 1025 ) { // 600
 		gsize = '15px';
-	} else if($(window).width() > 599) {
+	} else if($(window).width() > 1024 ) { // 599
 		gsize = '20px';
 	};
 
 	geo_title = svg.append("text")
 		.attr("class","geoTitle")
-		.attr("transform", "translate(" + (width+centerPadding+20)+","+ (35) + ")") // height * 0.10
+		.attr("transform", "translate(" + (xtgeo)+","+ (ytgeo) + ")") // height * 0.10
 		.attr("x", width / 2 + 20)
 		.attr("text-anchor","middle")
 		//.attr("x", (width+5)*(3/2))
 		.attr("y", 0)
 		.style("font-size", gsize)
+		.style('font-family', 'sans-serif')
 		.text('California');
 
 	geo_cnty = svg.append("text")
 		.attr("class","geoTitle")
-		.attr("transform", "translate(" + (width+centerPadding+20)+","+ (35) + ")") // height * 0.10
+		.attr("transform", "translate(" + (xtgeo)+","+ (ytgeo) + ")") // height * 0.10
 		.attr("x", width / 2 + 20)
 		.attr("text-anchor","middle")
 		.attr("y", 0)
@@ -537,6 +556,7 @@ dsv("/DRUpopPyramid/data/caprojdata5yr_1970-2070.csv", function(csv){
 		/*.style("font-weight","bold")
 		.style("font-size","20px") */
 		.style("font-size", gsize)
+		.style('font-family', 'sans-serif')
 		.text('');
 
 	/*svg.append("text")
@@ -741,7 +761,7 @@ dsv("/DRUpopPyramid/data/caprojdata5yr_1970-2070.csv", function(csv){
 		.style("font-color","white")
 		.text(function(d,i) {return legendText[i]; });
 
-	d3.json('/DRUpopPyramid/data/cb_2014_us_county_5m.json', function(error, ca1) {
+	d3.json('/data/cb_2014_us_county_5m.json', function(error, ca1) {
 		if (error) throw error;
 
 		ca = ca1;
@@ -848,15 +868,15 @@ dsv("/DRUpopPyramid/data/caprojdata5yr_1970-2070.csv", function(csv){
 		.domain([minLine/1.5, maxLine*1.125]);
 
 	
-	if( $('.r-right').width() < 900) { 
+	if( $('.r-right').width() < 700) {	// 900
 	xAxis2 = d3.svg.axis().scale(x1)
 				.orient("bottom")
 				//.ticks(10)
-				.tickValues([1980, 2000, 2025, 2050, 2070])
+				.tickValues([1970, 1990, 2010, 2025, 2050, 2070]) // 1980, 2000, 2025, 2050, 2070
 				.tickFormat(d3.format("d"));
 	}
 
-	if( $('.r-right').width() >= 900) { 
+	if( $('.r-right').width() >= 700) {
 	xAxis2 = d3.svg.axis().scale(x1)
 				.orient("bottom")
 				//.ticks(10)
@@ -1074,11 +1094,27 @@ dsv("/DRUpopPyramid/data/caprojdata5yr_1970-2070.csv", function(csv){
 	// var colorsb = ['rgb(215,25,28)','rgb(253,174,97)','rgb(44,123,182)'];
 	var colorsb = ['rgb(215,25,28)','rgb(253,184,30)','rgb(4,107,153)'];
 
-	xAxisb = d3.svg.axis().scale(xb)
+	if( $('.r-right').width() < 900) { 
+		xAxisb = d3.svg.axis().scale(xb)
+				.orient("bottom")
+				.ticks(7)
+				.tickValues([1970, 1990, 2010, 2030, 2050, 2070])
+				.tickFormat(d3.format("d"));
+	}
+
+	if( $('.r-right').width() >= 900) { 
+		xAxisb = d3.svg.axis().scale(xb)
 				.orient("bottom")
 				.ticks(7)
 				.tickValues([1970, 1980, 1990, 2000, 2010, 2020,2030,2040,2050,2060,2070])
 				.tickFormat(d3.format("d"));
+	}
+
+	// xAxisb = d3.svg.axis().scale(xb)
+	// 			.orient("bottom")
+	// 			.ticks(7)
+	// 			.tickValues([1970, 1980, 1990, 2000, 2010, 2020,2030,2040,2050,2060,2070])
+	// 			.tickFormat(d3.format("d"));
 
 	yAxisb = d3.svg.axis().scale(yb)
 				.orient("left")
@@ -1266,65 +1302,129 @@ $("#area").on('change', function(){
 	// new_geo = $('#area option:selected').text();
 	//console.log(new_geo);
 
-	if(geo == '1'){new_geo = 'California'; new_cnty="";}	
-	if(geo == '6001'){new_geo = 'Alameda County'; new_cnty='';};
-	if(geo == '6003'){new_geo = 'Alpine County'; new_cnty='';};
-	if(geo == '6005'){new_geo = 'Amador County'; new_cnty='';};
-	if(geo == '6007'){new_geo = 'Butte County'; new_cnty='';};
-	if(geo == '6009'){new_geo = 'Calaveras'; new_cnty=' County';};
-	if(geo == '6011'){new_geo = 'Colusa County'; new_cnty='';};
-	if(geo == '6013'){new_geo = 'Contra Costa'; new_cnty=' County';};
-	if(geo == '6015'){new_geo = 'Del Norte'; new_cnty=' County';};
-	if(geo == '6017'){new_geo = 'El Dorado'; new_cnty=' County';};
-	if(geo == '6019'){new_geo = 'Fresno County'; new_cnty='';};
-	if(geo == '6021'){new_geo = 'Glenn County'; new_cnty='';};
-	if(geo == '6023'){new_geo = 'Humboldt County'; new_cnty='';};
-	if(geo == '6025'){new_geo = 'Imperial County'; new_cnty='';};
-	if(geo == '6027'){new_geo = 'Inyo County'; new_cnty='';};
-	if(geo == '6029'){new_geo = 'Kern County'; new_cnty='';};
-	if(geo == '6031'){new_geo = 'Kings County'; new_cnty='';};
-	if(geo == '6033'){new_geo = 'Lake County'; new_cnty='';};
-	if(geo == '6035'){new_geo = 'Lassen County'; new_cnty='';};
-	if(geo == '6037'){new_geo = 'Los Angeles'; new_cnty=' County';};
-	if(geo == '6039'){new_geo = 'Madera County'; new_cnty='';};
-	if(geo == '6041'){new_geo = 'Marin County'; new_cnty='';};
-	if(geo == '6043'){new_geo = 'Mariposa County'; new_cnty='';};
-	if(geo == '6045'){new_geo = 'Mendocino'; new_cnty=' County';};
-	if(geo == '6047'){new_geo = 'Merced County'; new_cnty='';};
-	if(geo == '6049'){new_geo = 'Modoc County'; new_cnty='';};
-	if(geo == '6051'){new_geo = 'Mono County'; new_cnty='';};
-	if(geo == '6053'){new_geo = 'Monterey County'; new_cnty='';};
-	if(geo == '6055'){new_geo = 'Napa County'; new_cnty='';};
-	if(geo == '6057'){new_geo = 'Nevada County'; new_cnty='';};
-	if(geo == '6059'){new_geo = 'Orange County'; new_cnty='';};
-	if(geo == '6061'){new_geo = 'Placer County'; new_cnty='';};
-	if(geo == '6063'){new_geo = 'Plumas County'; new_cnty='';};
-	if(geo == '6065'){new_geo = 'Riverside'; new_cnty=' County';};
-	if(geo == '6067'){new_geo = 'Sacramento'; new_cnty=' County';};
-	if(geo == '6069'){new_geo = 'San Benito'; new_cnty=' County';};
-	if(geo == '6071'){new_geo = 'San Bernardino'; new_cnty=' County';};
-	if(geo == '6073'){new_geo = 'San Diego'; new_cnty=' County';};
-	if(geo == '6075'){new_geo = 'San Francisco'; new_cnty=' County';};
-	if(geo == '6077'){new_geo = 'San Joaquin'; new_cnty=' County';};
-	if(geo == '6079'){new_geo = 'San Luis Obispo'; new_cnty=' County';};
-	if(geo == '6081'){new_geo = 'San Mateo'; new_cnty=' County';};
-	if(geo == '6083'){new_geo = 'Santa Barbara'; new_cnty=' County';};
-	if(geo == '6085'){new_geo = 'Santa Clara'; new_cnty=' County';};
-	if(geo == '6087'){new_geo = 'Santa Cruz'; new_cnty=' County';};
-	if(geo == '6089'){new_geo = 'Shasta County'; new_cnty='';};
-	if(geo == '6091'){new_geo = 'Sierra County'; new_cnty='';};
-	if(geo == '6093'){new_geo = 'Siskiyou County'; new_cnty='';};
-	if(geo == '6095'){new_geo = 'Solano County'; new_cnty='';};
-	if(geo == '6097'){new_geo = 'Sonoma County'; new_cnty='';};
-	if(geo == '6099'){new_geo = 'Stanislaus'; new_cnty=' County';};
-	if(geo == '6101'){new_geo = 'Sutter County'; new_cnty='';};
-	if(geo == '6103'){new_geo = 'Tehama County'; new_cnty='';};
-	if(geo == '6105'){new_geo = 'Trinity County'; new_cnty='';};
-	if(geo == '6107'){new_geo = 'Tulare County'; new_cnty='';};
-	if(geo == '6109'){new_geo = 'Tuolumne County'; new_cnty='';};
-	if(geo == '6111'){new_geo = 'Ventura County'; new_cnty='';};
-	if(geo == '6113'){new_geo = 'Yolo County'; new_cnty='';};
-	if(geo == '6115'){new_geo = 'Yuba County'; new_cnty='';};
+		//GEO TEXT SIZE BASED ON WINDOW SIZE
+	if( $(window).width() < 1100 ) { // 600
+			if(geo == '1'){new_geo = 'California'; new_cnty="";};
+			if(geo == '6001'){new_geo = 'Alameda'; new_cnty='County';};
+            if(geo == '6003'){new_geo = 'Alpine'; new_cnty='County';};
+            if(geo == '6005'){new_geo = 'Amador'; new_cnty='County';};
+            if(geo == '6007'){new_geo = 'Butte'; new_cnty='County';};
+            if(geo == '6009'){new_geo = 'Calaveras'; new_cnty=' County';};
+            if(geo == '6011'){new_geo = 'Colusa'; new_cnty='County';};
+            if(geo == '6013'){new_geo = 'Contra Costa'; new_cnty=' County';};
+            if(geo == '6015'){new_geo = 'Del Norte'; new_cnty=' County';};
+            if(geo == '6017'){new_geo = 'El Dorado'; new_cnty=' County';};
+            if(geo == '6019'){new_geo = 'Fresno'; new_cnty='County';};
+            if(geo == '6021'){new_geo = 'Glenn'; new_cnty='County';};
+            if(geo == '6023'){new_geo = 'Humboldt'; new_cnty='County';};
+            if(geo == '6025'){new_geo = 'Imperial'; new_cnty='County';};
+            if(geo == '6027'){new_geo = 'Inyo'; new_cnty='County';};
+            if(geo == '6029'){new_geo = 'Kern'; new_cnty='County';};
+            if(geo == '6031'){new_geo = 'Kings'; new_cnty='County';};
+            if(geo == '6033'){new_geo = 'Lake'; new_cnty='County';};
+            if(geo == '6035'){new_geo = 'Lassen'; new_cnty='County';};
+            if(geo == '6037'){new_geo = 'Los Angeles'; new_cnty=' County';};
+            if(geo == '6039'){new_geo = 'Madera'; new_cnty='County';};
+            if(geo == '6041'){new_geo = 'Marin'; new_cnty='County';};
+            if(geo == '6043'){new_geo = 'Mariposa'; new_cnty='County';};
+            if(geo == '6045'){new_geo = 'Mendocino'; new_cnty=' County';};
+            if(geo == '6047'){new_geo = 'Merced'; new_cnty='County';};
+            if(geo == '6049'){new_geo = 'Modoc'; new_cnty='County';};
+            if(geo == '6051'){new_geo = 'Mono'; new_cnty='County';};
+            if(geo == '6053'){new_geo = 'Monterey'; new_cnty='County';};
+            if(geo == '6055'){new_geo = 'Napa'; new_cnty='County';};
+            if(geo == '6057'){new_geo = 'Nevada'; new_cnty='County';};
+            if(geo == '6059'){new_geo = 'Orange'; new_cnty='County';};
+            if(geo == '6061'){new_geo = 'Placer'; new_cnty='County';};
+            if(geo == '6063'){new_geo = 'Plumas'; new_cnty='County';};
+            if(geo == '6065'){new_geo = 'Riverside'; new_cnty=' County';};
+            if(geo == '6067'){new_geo = 'Sacramento'; new_cnty=' County';};
+            if(geo == '6069'){new_geo = 'San Benito'; new_cnty=' County';};
+            if(geo == '6071'){new_geo = 'San Bernardino'; new_cnty=' County';};
+            if(geo == '6073'){new_geo = 'San Diego'; new_cnty=' County';};
+            if(geo == '6075'){new_geo = 'San Francisco'; new_cnty=' County';};
+            if(geo == '6077'){new_geo = 'San Joaquin'; new_cnty=' County';};
+            if(geo == '6079'){new_geo = 'San Luis Obispo'; new_cnty=' County';};
+            if(geo == '6081'){new_geo = 'San Mateo'; new_cnty=' County';};
+            if(geo == '6083'){new_geo = 'Santa Barbara'; new_cnty=' County';};
+            if(geo == '6085'){new_geo = 'Santa Clara'; new_cnty=' County';};
+            if(geo == '6087'){new_geo = 'Santa Cruz'; new_cnty=' County';};
+            if(geo == '6089'){new_geo = 'Shasta'; new_cnty='County';};
+            if(geo == '6091'){new_geo = 'Sierra'; new_cnty='County';};
+            if(geo == '6093'){new_geo = 'Siskiyou'; new_cnty='County';};
+            if(geo == '6095'){new_geo = 'Solano'; new_cnty='County';};
+            if(geo == '6097'){new_geo = 'Sonoma'; new_cnty='County';};
+            if(geo == '6099'){new_geo = 'Stanislaus'; new_cnty=' County';};
+            if(geo == '6101'){new_geo = 'Sutter'; new_cnty='County';};
+            if(geo == '6103'){new_geo = 'Tehama'; new_cnty='County';};
+            if(geo == '6105'){new_geo = 'Trinity'; new_cnty='County';};
+            if(geo == '6107'){new_geo = 'Tulare'; new_cnty='County';};
+            if(geo == '6109'){new_geo = 'Tuolumne'; new_cnty='County';};
+            if(geo == '6111'){new_geo = 'Ventura'; new_cnty='County';};
+            if(geo == '6113'){new_geo = 'Yolo'; new_cnty='County';};
+            if(geo == '6115'){new_geo = 'Yuba'; new_cnty='County';};
+					
+		} else if( $(window).width() > 1099 ) { // 599
+			if(geo == '1'){new_geo = 'California'; new_cnty="";};
+			if(geo == '6001'){new_geo = 'Alameda County'; new_cnty='';};
+			if(geo == '6003'){new_geo = 'Alpine County'; new_cnty='';};
+			if(geo == '6005'){new_geo = 'Amador County'; new_cnty='';};
+			if(geo == '6007'){new_geo = 'Butte County'; new_cnty='';};
+			if(geo == '6009'){new_geo = 'Calaveras'; new_cnty=' County';};
+			if(geo == '6011'){new_geo = 'Colusa County'; new_cnty='';};
+			if(geo == '6013'){new_geo = 'Contra Costa'; new_cnty=' County';};
+			if(geo == '6015'){new_geo = 'Del Norte'; new_cnty=' County';};
+			if(geo == '6017'){new_geo = 'El Dorado'; new_cnty=' County';};
+			if(geo == '6019'){new_geo = 'Fresno County'; new_cnty='';};
+			if(geo == '6021'){new_geo = 'Glenn County'; new_cnty='';};
+			if(geo == '6023'){new_geo = 'Humboldt County'; new_cnty='';};
+			if(geo == '6025'){new_geo = 'Imperial County'; new_cnty='';};
+			if(geo == '6027'){new_geo = 'Inyo County'; new_cnty='';};
+			if(geo == '6029'){new_geo = 'Kern County'; new_cnty='';};
+			if(geo == '6031'){new_geo = 'Kings County'; new_cnty='';};
+			if(geo == '6033'){new_geo = 'Lake County'; new_cnty='';};
+			if(geo == '6035'){new_geo = 'Lassen County'; new_cnty='';};
+			if(geo == '6037'){new_geo = 'Los Angeles'; new_cnty=' County';};
+			if(geo == '6039'){new_geo = 'Madera County'; new_cnty='';};
+			if(geo == '6041'){new_geo = 'Marin County'; new_cnty='';};
+			if(geo == '6043'){new_geo = 'Mariposa County'; new_cnty='';};
+			if(geo == '6045'){new_geo = 'Mendocino'; new_cnty=' County';};
+			if(geo == '6047'){new_geo = 'Merced County'; new_cnty='';};
+			if(geo == '6049'){new_geo = 'Modoc County'; new_cnty='';};
+			if(geo == '6051'){new_geo = 'Mono County'; new_cnty='';};
+			if(geo == '6053'){new_geo = 'Monterey County'; new_cnty='';};
+			if(geo == '6055'){new_geo = 'Napa County'; new_cnty='';};
+			if(geo == '6057'){new_geo = 'Nevada County'; new_cnty='';};
+			if(geo == '6059'){new_geo = 'Orange County'; new_cnty='';};
+			if(geo == '6061'){new_geo = 'Placer County'; new_cnty='';};
+			if(geo == '6063'){new_geo = 'Plumas County'; new_cnty='';};
+			if(geo == '6065'){new_geo = 'Riverside'; new_cnty=' County';};
+			if(geo == '6067'){new_geo = 'Sacramento'; new_cnty=' County';};
+			if(geo == '6069'){new_geo = 'San Benito'; new_cnty=' County';};
+			if(geo == '6071'){new_geo = 'San Bernardino'; new_cnty=' County';};
+			if(geo == '6073'){new_geo = 'San Diego'; new_cnty=' County';};
+			if(geo == '6075'){new_geo = 'San Francisco'; new_cnty=' County';};
+			if(geo == '6077'){new_geo = 'San Joaquin'; new_cnty=' County';};
+			if(geo == '6079'){new_geo = 'San Luis Obispo'; new_cnty=' County';};
+			if(geo == '6081'){new_geo = 'San Mateo'; new_cnty=' County';};
+			if(geo == '6083'){new_geo = 'Santa Barbara'; new_cnty=' County';};
+			if(geo == '6085'){new_geo = 'Santa Clara'; new_cnty=' County';};
+			if(geo == '6087'){new_geo = 'Santa Cruz'; new_cnty=' County';};
+			if(geo == '6089'){new_geo = 'Shasta County'; new_cnty='';};
+			if(geo == '6091'){new_geo = 'Sierra County'; new_cnty='';};
+			if(geo == '6093'){new_geo = 'Siskiyou County'; new_cnty='';};
+			if(geo == '6095'){new_geo = 'Solano County'; new_cnty='';};
+			if(geo == '6097'){new_geo = 'Sonoma County'; new_cnty='';};
+			if(geo == '6099'){new_geo = 'Stanislaus'; new_cnty=' County';};
+			if(geo == '6101'){new_geo = 'Sutter County'; new_cnty='';};
+			if(geo == '6103'){new_geo = 'Tehama County'; new_cnty='';};
+			if(geo == '6105'){new_geo = 'Trinity County'; new_cnty='';};
+			if(geo == '6107'){new_geo = 'Tulare County'; new_cnty='';};
+			if(geo == '6109'){new_geo = 'Tuolumne County'; new_cnty='';};
+			if(geo == '6111'){new_geo = 'Ventura County'; new_cnty='';};
+			if(geo == '6113'){new_geo = 'Yolo County'; new_cnty='';};
+			if(geo == '6115'){new_geo = 'Yuba County'; new_cnty='';};
+		}
 
 	geo_title.text(new_geo);	
 	geo_cnty.text(new_cnty); 
@@ -1793,8 +1893,8 @@ $("#imgDL2").click(function(){
 	if(typeof saveSvgAsPng === 'undefined'){
 		alert("To download the pyramid as an image, please right-click inside the pyramid frame and choose 'Save Picture As'.");
 	} else {
-		saveSvgAsPng(document.querySelectorAll("svg")[0], "pyramid.png")
-		//saveSvg(document.querySelectorAll("svg")[0], "pyramid.svg")
+		saveSvgAsPng(document.getElementById('popPyr'), 'popPyramid.png')
+		// saveSvgAsPng(document.querySelectorAll("svg")[0], "pyramid.png")
 	}
 	/*svgAsDataUri(document.querySelectorAll("svg")[0], {}, function(uri) {
 		console.log('uri', uri);

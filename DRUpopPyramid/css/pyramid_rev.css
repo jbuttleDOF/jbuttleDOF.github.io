@@ -50,7 +50,7 @@ path {
     margin-bottom: .75em;
 }
 
-@media only screen and (max-width: 600px) {
+@media (max-width: 600px) { /* only screen and (max-width: 600px) */
     .left {
         width: 100%; /* 40% laptop 32% full screen*/
         height: 480px;
@@ -87,9 +87,13 @@ path {
         background-color:rgb(123, 176, 218); */
         background-color: rgb(135,184,206);
     }
+
+    #pjyr, #pjyr2 {
+        font-size: 11px;
+    }
 }
 
-@media only screen and (min-width: 600px) {
+@media (min-width: 600px) { /* only screen and (min-width: 600px) */
     .left {
         width: 75%; 
         /*height: 670px;*/
@@ -102,7 +106,7 @@ path {
     .middle {
         width: 10%; 
         float: left;
-        margin-top: 50px;
+       /*  margin-top: 50px; */
     }
 
     .right {
@@ -127,9 +131,19 @@ path {
         /* background-color:rgb(123, 176, 218);*/
         background-color: rgb(135,184,206);
     }
+
+    #pjyr, #pjyr2 {
+        font-size: .6em;
+    }
+
+    .hoverBirthYear {
+        pointer-events: none;
+        font-size: 9px;
+        font-weight: bold;
+    }
 } 
 
-@media (min-width: 962px) {
+@media (min-width: 962px) { /* 1100px */
     .left {
         width: 50%; 
         /* height: 670px; */
@@ -165,7 +179,7 @@ path {
     }
 
     #slider {
-        padding-left: 1em;
+        padding-left: .65em;
     }
 
     #slider2 {
@@ -179,6 +193,16 @@ path {
         /*border: 2px solid rgba(0,0,0,.15); 
         background-color:rgb(123, 176, 218); */
         background-color: rgb(135,184,206);
+    }
+
+    #pjyr, #pjyr2 {
+        font-size: 12px;
+    }
+
+    .hoverBirthYear {
+        pointer-events: none;
+        font-size: 11px;
+        font-weight: bold;
     }
 }
 
@@ -236,6 +260,16 @@ path {
         background-color: rgb(135,184,206);
         margin-bottom: 10px;
         border-radius: 5px;
+    }
+
+    #pjyr, #pjyr2 {
+        font-size: 12px;
+    }
+
+    .hoverBirthYear {
+        pointer-events: none;
+        font-size: 11px;
+        font-weight: bold;
     }
 
     /*.geoTitle {
@@ -619,11 +653,11 @@ td {
     box-shadow: 5px 5px 2.5px grey;
 }
 
-.hoverBirthYear {
+/* .hoverBirthYear {
     pointer-events: none;
     font-size: 11px;
     font-weight: bold;
-}
+} */
 
 .instrc {
     /* font-size: 12px; */
