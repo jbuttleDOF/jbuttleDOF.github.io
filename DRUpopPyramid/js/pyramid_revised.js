@@ -38,6 +38,7 @@ var	year1=2070,
 	year0=1970,
 	bsyear=2020, // bsyear=2010,
 	year=2025, // year=2020,
+
 	clickBirthYear = 0,
 	nrXticks = 7,
 	nrYticks = 5,
