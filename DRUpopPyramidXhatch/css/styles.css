@@ -1,0 +1,345 @@
+/* container background color for executive profile on homepage  */
+h1,
+h2,
+h3,
+h4,
+h5 {
+  color: #46565e;
+}
+
+h1,
+.h1 {
+  font-size: calc(1.375rem + 1.5vw);
+}
+@media (min-width: 1200px) {
+  h1,
+  .h1 {
+    font-size: 2.4rem;
+  }
+}
+
+h2,
+.h2 {
+  font-size: calc(1.325rem + 0.9vw);
+}
+@media (min-width: 1200px) {
+  h2,
+  .h2 {
+    font-size: 2.1rem;
+  }
+}
+
+h3,
+.h3 {
+  font-size: calc(1.3rem + 0.6vw);
+}
+@media (min-width: 1200px) {
+  h3,
+  .h3 {
+    font-size: 1.8rem;
+  }
+}
+
+h4,
+.h4 {
+  font-size: calc(1.275rem + 0.3vw);
+}
+@media (min-width: 1200px) {
+  h4,
+  .h4 {
+    font-size: 1.5rem;
+  }
+}
+
+h5,
+.h5 {
+  font-size: 1.2rem;
+}
+
+h6,
+.h6 {
+  font-size: 0.9rem;
+}
+
+body a[href^="/"][href$=".pdf"]::after,
+body a[href*="dof.ca.gov"][href$=".pdf"]::after {
+  content: "PDF";
+}
+
+body a[href^="/"][href$=".docx"]::after,
+body a[href*="dof.ca.gov"][href$=".docx"]::after {
+  content: "DOCX";
+}
+
+body a[href^="/"][href$=".pptx"]::after,
+body a[href*="dof.ca.gov"][href$=".pptx"]::after {
+  content: "PPTX";
+}
+
+body a[href^="/"][href$=".xlsx"]::after,
+body a[href*="dof.ca.gov"][href$=".xlsx"]::after {
+  content: "XLSX";
+}
+
+body a[href^="/"][href$=".csv"]::after,
+body a[href*="dof.ca.gov"][href$=".csv"]::after {
+  content: "CSV";
+}
+
+body a[href^="/"][href$=".txt"]::after,
+body a[href*="dof.ca.gov"][href$=".txt"]::after {
+  content: "TXT";
+}
+
+body a[href^="/"][href$=".zip"]::after,
+body a[href*="dof.ca.gov"][href$=".zip"]::after {
+  content: "ZIP";
+}
+
+body a[href^="/"][href$=".mp3"]::after,
+body a[href*="dof.ca.gov"][href$=".mp3"]::after {
+  content: "MP3";
+}
+
+body a[href^="/"][href$=".docm"]::after,
+body a[href*="dof.ca.gov"][href$=".docm"]::after {
+  content: "DOCM";
+}
+
+body a[href^="/"][href$=".xlsm"]::after,
+body a[href*="dof.ca.gov"][href$=".xlsm"]::after {
+  content: "XLSM";
+}
+
+body a[href^="/"][href$=".pdf"]::after,
+body a[href^="/"][href$=".docx"]::after,
+body a[href^="/"][href$=".pptx"]::after,
+body a[href^="/"][href$=".xlsx"]::after,
+body a[href^="/"][href$=".csv"]::after,
+body a[href^="/"][href$=".txt"]::after,
+body a[href^="/"][href$=".zip"]::after,
+body a[href^="/"][href$=".mp3"]::after,
+body a[href^="/"][href$=".docm"]::after,
+body a[href^="/"][href$=".xlsm"]::after,
+body a[href*="dof.ca.gov"][href$=".pdf"]::after,
+body a[href*="dof.ca.gov"][href$=".docx"]::after,
+body a[href*="dof.ca.gov"][href$=".pptx"]::after,
+body a[href*="dof.ca.gov"][href$=".xlsx"]::after,
+body a[href*="dof.ca.gov"][href$=".csv"]::after,
+body a[href*="dof.ca.gov"][href$=".txt"]::after,
+body a[href*="dof.ca.gov"][href$=".zip"]::after,
+body a[href*="dof.ca.gov"][href$=".mp3"]::after,
+body a[href*="dof.ca.gov"][href$=".docm"]::after,
+body a[href*="dof.ca.gov"][href$=".xlsm"]::after {
+  display: inline-block;
+  margin: 0 0 4px 5px;
+  padding: 2px 2px 1px 2px;
+  border: 1px solid;
+  font-size: 10px;
+  font-family: Helvetica, sans-serif;
+  line-height: 10px;
+  vertical-align: middle;
+  text-decoration: none;
+}
+
+.bgcolor-light-blue-gray {
+  background-color: #dae6ed;
+}
+
+/* light shadow on staff photos */
+.img-shadow {
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  max-width: 200px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 10px;
+}
+
+.dof-table-title {
+  text-align: center;
+  font-weight: bold;
+}
+
+.dof-table {
+  width: 100%;
+}
+
+.dof-table tbody tr td:not(:first-child) {
+  text-align: center;
+  vertical-align: top;
+}
+
+.dof-table th {
+  background-color: #dae6ed !important;
+  text-align: center;
+  vertical-align: bottom;
+}
+
+.dof-table th,
+td {
+  border: 1px solid darkslategray;
+  padding: 10px;
+}
+
+li {
+  padding-top: 0.2rem;
+  padding-bottom: 0.2rem;
+}
+
+#nav_list li.nav-item {
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.side-navigation ul li {
+  padding: 0 !important;
+}
+
+.dof-profile-width {
+  width: 425px;
+}
+
+img.staff-img-thumbnail {
+  border-radius: 50%;
+}
+
+.tabs section .dof-table tr td {
+  text-align: left;
+}
+
+.global-footer .footer-links li {
+  margin-right: 2px !important;
+}
+
+.dof-min-page-height {
+  min-height: 725px;
+  padding-bottom: 100px;
+}
+
+.width-300 {
+  width: 300px !important;
+}
+.width-400 {
+  width: 400px !important;
+}
+.width-600 {
+  width: 600px !important;
+}
+
+p.dof-reset-styles {
+  font-size: revert;
+  line-height: revert;
+  padding: revert;
+  margin: revert;
+}
+
+.color-gold {
+  color: #e5c068;
+}
+
+.font-size-18 {
+  font-size: 1.333rem;
+}
+
+.width-175 {
+  width: 175px !important;
+}
+
+.dof-title-bar {
+  background-color: #142654;
+  margin: 0 !important;
+}
+
+.bg-tile-bg-color {
+  background-color: #193153;
+}
+
+@media screen and (max-width: 991px) {
+  #side-navigation {
+    margin-top: 0 !important;
+  }
+}
+.dof-flex-bullet-group {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0;
+}
+
+.dof-flex-bullet-group > div {
+  width: 285px;
+  padding: 0;
+}
+
+.dof-custom-footer {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0;
+  list-style-position: outside;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.dof-custom-footer li {
+  width: 30%;
+  word-wrap: break-word;
+  list-style-type: disc;
+  color: white;
+  text-decoration: none;
+  margin-left: 32px;
+}
+
+.breadcrumbs ul li,
+.breadcrumbs ol li {
+  position: relative;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+.exe-pbm.executive-profile .executive-profile-body {
+  border-left: none;
+}
+
+@media (max-width: 1199px) {
+  .dof-custom-footer li {
+    width: 46%;
+  }
+}
+
+@media (max-width: 767px) {
+  .dof-custom-footer li {
+    width: 96%;
+  }
+  #dof-image-banner {
+    height: auto !important;
+  }
+  .dof-homepage-quick-links .link-grid {
+    font-size: revert;
+  }
+  .executive-profile img {
+    display: none;
+  }
+  .exe-pbm.executive-profile .executive-profile-body {
+    border-left: 1px solid var(--gray-900, #3b3a48);
+  }
+}
+
+.dof-custom-footer a:link,
+.dof-custom-footer a:visited,
+.dof-custom-footer a:active,
+.dof-default-footer a:link,
+.dof-default-footer a:visited,
+.dof-default-footer a:active {
+  text-decoration: none !important;
+  color: white !important;
+}
+
+.dof-custom-footer a:hover,
+.dof-default-footer a:hover {
+  text-decoration: underline !important;
+}
+
+.executive-profile img {
+  max-width: 110px;
+  max-height: 110px;
+}
