@@ -1115,8 +1115,8 @@ dsv("/DRUpopPyramidXhatch/data/caprojdata5yr_1970-2070.csv", function(csv){
 			.attr('height', 4);
 
 	pattern.append('rect')
-            .attr('width', 2) // .attr('width', 8)
-            .attr('height', 4) // .attr('height', 8)
+            .attr('width', 2.5) // .attr('width', 8) 2
+            .attr('height', 4) // .attr('height', 8) 4
             .attr('fill', 'rgba(255,0,0,1)');
 
 	/* pattern.append('path')
@@ -1147,6 +1147,8 @@ dsv("/DRUpopPyramidXhatch/data/caprojdata5yr_1970-2070.csv", function(csv){
             //.attr("fill", "#000000"); // Color of the dots
 			.attr("fill", "rgb(253,184,30)"); // Color of the dots */
 
+
+	// HORIZONTAL PATTERN
 	pattern2 = defs
 		.append('pattern')
 			.attr('id', 'horizontal')
@@ -1160,6 +1162,7 @@ dsv("/DRUpopPyramidXhatch/data/caprojdata5yr_1970-2070.csv", function(csv){
             .attr('height', 4) // .attr('height', 8)
 			.attr("fill", "rgb(253,184,30)"); // Color of the lines */
 
+
 	// BACKWARD SLASH LINE - BLUE
 	pattern3 = defs
 		.append("pattern")
@@ -1170,9 +1173,7 @@ dsv("/DRUpopPyramidXhatch/data/caprojdata5yr_1970-2070.csv", function(csv){
 			.attr("height", 4);
 
 	pattern3.append('rect')
-           /* .attr('width', 8)
-            .attr('height', 8) */
-		  	.attr('width', 2)
+		  	.attr('width', 2.5)
             .attr('height', 4) 
             .attr('fill', '#0000FF')//'rgb(44,123,182)');
 
@@ -1184,9 +1185,9 @@ dsv("/DRUpopPyramidXhatch/data/caprojdata5yr_1970-2070.csv", function(csv){
 			.attr("stroke", "rgb(253,184,30)") //'#000000') // Color of the lines
 			.attr("stroke-width", 1); */
 
-	// var colorsb = ['rgb(215,25,28)','rgb(253,174,97)','rgb(44,123,182)'];
 	var colorsb = ['rgb(215,25,28)','rgb(253,184,30)','rgb(4,107,153)'];
-	var fillr = ['url(#diagonalHatch)','url(#horizontal)','url(#backward-slash-hatch)'];
+	// var fillr = ['url(#diagonalHatch)','url(#horizontal)','url(#backward-slash-hatch)'];
+	var fillr = ['url(#diagonalHatch)','rgb(253,184,30)','url(#backward-slash-hatch)'];
 
 	if( $('.r-right').width() < 900) { 
 		xAxisb = d3.svg.axis().scale(xb)
