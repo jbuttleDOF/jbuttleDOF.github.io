@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>CA Assembly April 2021-12.2</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    
+    <!-- Load Leaflet from CDN -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <!-- Load Esri Leaflet from CDN 
+    <script src="https://unpkg.com/esri-leaflet/dist/esri-leaflet.js"></script> -->
+
+    <script src="classyJenks.js"></script>
+    <script type="text/javascript" src="https://d3js.org/d3.v5.min.js"></script>
+
+  <!-- Load geojson file from https://github.com/Tejaswini21nalla/LeafletMap -->
+  <script src="shapefiles/cb_2013_06_sldl_500k.js"></script>
+  <!-- <script src="shapefiles/tl_2012_06_sldl.js"></script> -->
+
+    <style>
+      html, body{
+          margin:0; padding:0;  width : 100%; height : 100%;
+          background: black; 
+          font-family: "Source Sans Pro", sans-serif;
+      }
+
+      #top{
+        margin-bottom: 15px;
+      }
+
+      #map{
+        height: 85vh;
+      }
+
+      #mapLabel {
+        z-index: 1000;
+        position: absolute;
+        width: 15%;
+        top: 17%;
+        left: 22%;
+      }
+
+      #pullDown {
+        z-index: 1000;
+        /* position: absolute; 
+        width: 15%;*/
+        top: 5%;
+        left:0%;
+        text-align: right;
+      }
+
+      #header{
+        color: #BDBDBD;
+        text-align: center;
+        margin-bottom: 0;
+      }
+
+      .column {
+        float: left;
+        height: 90vh;
+      }
+
+      .left {
+        width: 40%;
+        margin-left: 25px;
+      }
+      .right {
+        width: 50%;
+        padding-left: 25px;
+        margin-left: 20px;
+      }
+      /* Clear floats after the columns */
+      .row:after {
+          content: "";
+          display: table;
+          clear: both;
+      }
+      .legend {
+          text-align: right;
+          line-height: 18px;
+          color: #555;
+          /* background: lightgray; */
+		  }
+      .legend i {
+          width: 24px;
+          height: 14px;
+          float: left;
+          margin-right: 8px;
+          opacity: 0.7;
+      }
+      .info {
+          padding: 6px 8px;
+          /* font: 14px/16px Arial, Helvetica, sans-serif;*/
+          color: #BDBDBD ;
+          box-shadow: 0 0 15px rgba(0,0,0,0.2);
+          border-radius: 5px;
+		  }
+      #graph {
+        height: 100%;
+      }
+      #sf1Bar, #dpBar, #diffBar {
+        height: 25vh;
+        width: 100%;
+      }
+      /* #dpBar {
+        height: 45vh;
+        width: 100%;
+      }*/
+      .barText, .lblText {
+        fill: #BDBDBD ;
+      }
+      .axis{
+        color: #BDBDBD;
+      }
+      .bar.positive {
+        fill: steelblue;
+      }
+      .bar.negative {
+        fill: brown;
+      }
+
+    </style>
+  </head>
+  <body>
+  <div class='top'>
+    <h3 id="header">Differential Privacy (April 2021 - Epsilon 12.2) and 2010 Census Summary File 1: California Assembly Districts &mdash; 2012</h3>
+  </div>
+
+  <div class='row'>
+    <div id="mapContainer" class = 'column left'>
+      <div id="pullDown">
+        <p style="margin-bottom: 0; color: #BDBDBD; ">Race/Ethnicity</p>
+        <div class=menu >
+            <select name="raceEth" id="raceEthnicity"> 
+                <option value="tp">Total Population 18+</option>
+                <option value="hisp">Hispanic, Any Race</option>
+                <option value="wnh">White Non-Hispanic</option>
+                <option value="bnh">Black Non-Hispanic</option>
+                <option value="aiannh">American Indian and Native Alaskan Non-Hispanic</option>
+                <option value="anh">Asian Non-Hispanic</option>
+                <option value="nhpinh">Native Hawaiian and Pacific Islander Non-Hispanic</option>
+                <option value="onh">Other Non-Hispanic</option>
+                <option value="tomnh">Two or More Races Non-Hispanic</option>
+            </select> 
+        </div> 
+      </div>
+      <div id='map'></div>
+      <div id="mapLabel">
+        <p style="color: #BDBDBD; font-size: 12px;">Click on a district to view the population distribution by race/ethnicity for that district. Click outside the California map to reset the map and view the state-wide race/ethnicity distribution.</p>
+      </div>
+    </div>
+
+    <div id="rtSide" class = 'column right'>
+      <div id="graph">
+        <p id="sf1Tag" style="color:#BDBDBD; margin-bottom: 5px;">SF1 - Population 18 Years And Over by Race - California</p>
+        <div id="sf1Bar"></div>        
+        <p id="dpTag" style="color:#BDBDBD; margin-top: 0; margin-bottom: 5px;">Differential Privacy - Population 18 Years And Over by Race - California</p>
+        <div id="dpBar"></div>    
+          <p id="chgTag" style="color:#BDBDBD; margin-top: 0; margin-bottom: 0;">Difference (DP - SF1) - Population 18 Years And Over by Race - California</p>
+          <p id="chgTotal" style="margin:0"></p>
+        <div id="diffBar"></div>   
+      </div>
+    </div>
+
+  </div>
+
+    <script>
+
+      var brew = new classyBrew();
+
+      data = [
+        {SLSD: "001", chg: 269, hisp: -361, whitenh: 291, blacknh: -34, aiannh: 228, asiannh: -41, nhopinh: -25, othernh: -16, twoplusnh: 227}, {SLSD: "002", chg: 96, hisp: -557, whitenh: 275, blacknh: -11, aiannh: 298, asiannh: -36, nhopinh: 32, othernh: 14, twoplusnh: 81}, {SLSD: "003", chg: -33, hisp: -176, whitenh: 23, blacknh: -12, aiannh: 58, asiannh: 60, nhopinh: 7, othernh: -13, twoplusnh: 20}, {SLSD: "004", chg: 202, hisp: 4, whitenh: 64, blacknh: 7, aiannh: 36, asiannh: 16, nhopinh: 17, othernh: -13, twoplusnh: 71}, {SLSD: "005", chg: -5, hisp: -339, whitenh: 218, blacknh: -83, aiannh: 92, asiannh: -46, nhopinh: 17, othernh: -16, twoplusnh: 152}, {SLSD: "006", chg: 195, hisp: 44, whitenh: 45, blacknh: 59, aiannh: 3, asiannh: 3, nhopinh: 16, othernh: 10, twoplusnh: 15}, {SLSD: "007", chg: -335, hisp: -352, whitenh: 15, blacknh: -26, aiannh: 47, asiannh: 31, nhopinh: 52, othernh: -22, twoplusnh: -80}, {SLSD: "008", chg: 469, hisp: 189, whitenh: 65, blacknh: 69, aiannh: -16, asiannh: -75, nhopinh: 18, othernh: 10, twoplusnh: 209}, {SLSD: "009", chg: -433, hisp: -129, whitenh: -23, blacknh: -53, aiannh: 109, asiannh: -14, nhopinh: -68, othernh: 21, twoplusnh: -276}, {SLSD: "010", chg: -35, hisp: 95, whitenh: -82, blacknh: -10, aiannh: -39, asiannh: 0, nhopinh: 6, othernh: 7, twoplusnh: -12}, {SLSD: "011", chg: -451, hisp: -329, whitenh: 37, blacknh: -30, aiannh: -50, asiannh: 2, nhopinh: 84, othernh: -22, twoplusnh: -143}, {SLSD: "012", chg: 166, hisp: 48, whitenh: 8, blacknh: 58, aiannh: -13, asiannh: -15, nhopinh: 7, othernh: 12, twoplusnh: 61}, {SLSD: "013", chg: -384, hisp: -227, whitenh: -20, blacknh: -56, aiannh: 60, asiannh: 44, nhopinh: -11, othernh: -13, twoplusnh: -161}, {SLSD: "014", chg: -130, hisp: -74, whitenh: -47, blacknh: 93, aiannh: -64, asiannh: 33, nhopinh: -35, othernh: 32, twoplusnh: -68}, {SLSD: "015", chg: 413, hisp: 50, whitenh: -47, blacknh: -68, aiannh: 69, asiannh: 106, nhopinh: 61, othernh: 23, twoplusnh: 219}, {SLSD: "016", chg: 632, hisp: 520, whitenh: 30, blacknh: 33, aiannh: -20, asiannh: -11, nhopinh: -52, othernh: -60, twoplusnh: 192}, {SLSD: "017", chg: -529, hisp: -261, whitenh: -116, blacknh: 13, aiannh: -43, asiannh: -36, nhopinh: 21, othernh: 35, twoplusnh: -142}, {SLSD: "018", chg: 202, hisp: 127, whitenh: 14, blacknh: 23, aiannh: -30, asiannh: 31, nhopinh: 30, othernh: 20, twoplusnh: -13}, {SLSD: "019", chg: 331, hisp: 119, whitenh: 98, blacknh: 10, aiannh: 59, asiannh: 110, nhopinh: -40, othernh: -15, twoplusnh: -10}, {SLSD: "020", chg: -899, hisp: -345, whitenh: -109, blacknh: 17, aiannh: -17, asiannh: -54, nhopinh: -86, othernh: -12, twoplusnh: -293}, {SLSD: "021", chg: 26, hisp: 48, whitenh: -5, blacknh: -26, aiannh: -73, asiannh: 30, nhopinh: -10, othernh: -5, twoplusnh: 67}, {SLSD: "022", chg: 109, hisp: 98, whitenh: -37, blacknh: 67, aiannh: -49, asiannh: 5, nhopinh: 77, othernh: -23, twoplusnh: -29}, {SLSD: "023", chg: -77, hisp: 53, whitenh: 114, blacknh: 45, aiannh: 15, asiannh: 57, nhopinh: -96, othernh: -41, twoplusnh: -224}, {SLSD: "024", chg: 682, hisp: 457, whitenh: -51, blacknh: -33, aiannh: -16, asiannh: 105, nhopinh: 0, othernh: -13, twoplusnh: 233}, {SLSD: "025", chg: -86, hisp: -52, whitenh: -30, blacknh: 36, aiannh: 42, asiannh: 5, nhopinh: -3, othernh: 21, twoplusnh: -105}, {SLSD: "026", chg: 46, hisp: 107, whitenh: -34, blacknh: -7, aiannh: -18, asiannh: -30, nhopinh: 14, othernh: 27, twoplusnh: -13}, {SLSD: "027", chg: -584, hisp: -332, whitenh: -66, blacknh: -36, aiannh: -114, asiannh: -41, nhopinh: -28, othernh: 10, twoplusnh: 23}, {SLSD: "028", chg: 339, hisp: 247, whitenh: 6, blacknh: 9, aiannh: 0, asiannh: -47, nhopinh: 58, othernh: 35, twoplusnh: 31}, {SLSD: "029", chg: -76, hisp: 86, whitenh: 52, blacknh: 4, aiannh: -12, asiannh: 58, nhopinh: -21, othernh: -18, twoplusnh: -225}, {SLSD: "030", chg: -140, hisp: 29, whitenh: -144, blacknh: -16, aiannh: -75, asiannh: -69, nhopinh: 9, othernh: -16, twoplusnh: 142}, {SLSD: "031", chg: 89, hisp: 61, whitenh: -189, blacknh: -36, aiannh: -63, asiannh: -48, nhopinh: 72, othernh: 51, twoplusnh: 241}, {SLSD: "032", chg: -251, hisp: -54, whitenh: -147, blacknh: -44, aiannh: -87, asiannh: -20, nhopinh: -27, othernh: -1, twoplusnh: 129}, {SLSD: "033", chg: 286, hisp: 169, whitenh: 117, blacknh: -5, aiannh: 22, asiannh: -48, nhopinh: -8, othernh: -15, twoplusnh: 54}, {SLSD: "034", chg: 232, hisp: 122, whitenh: 138, blacknh: 34, aiannh: 31, asiannh: 6, nhopinh: 12, othernh: -27, twoplusnh: -84}, {SLSD: "035", chg: -106, hisp: -148, whitenh: 41, blacknh: 29, aiannh: -3, asiannh: -25, nhopinh: -68, othernh: 15, twoplusnh: 53}, {SLSD: "036", chg: -401, hisp: 4, whitenh: -17, blacknh: -34, aiannh: -56, asiannh: 69, nhopinh: -79, othernh: 16, twoplusnh: -304}, {SLSD: "037", chg: 282, hisp: 231, whitenh: -64, blacknh: 42, aiannh: -17, asiannh: -72, nhopinh: 44, othernh: 14, twoplusnh: 104}, {SLSD: "038", chg: 314, hisp: 409, whitenh: 82, blacknh: -27, aiannh: -46, asiannh: 30, nhopinh: 35, othernh: -6, twoplusnh: -163}, {SLSD: "039", chg: 277, hisp: 81, whitenh: -24, blacknh: -106, aiannh: -89, asiannh: -39, nhopinh: 75, othernh: -15, twoplusnh: 394}, {SLSD: "040", chg: -406, hisp: -219, whitenh: -12, blacknh: 21, aiannh: -24, asiannh: 83, nhopinh: -2, othernh: -48, twoplusnh: -205}, {SLSD: "041", chg: -436, hisp: -11, whitenh: 24, blacknh: -12, aiannh: 130, asiannh: -167, nhopinh: -18, othernh: -53, twoplusnh: -329}, {SLSD: "042", chg: 329, hisp: 379, whitenh: -93, blacknh: -16, aiannh: -22, asiannh: -68, nhopinh: 33, othernh: -44, twoplusnh: 160}, 
+        {SLSD: "043", chg: 301, hisp: 353, whitenh: -7, blacknh: 6, aiannh: 12, asiannh: 95, nhopinh: 2, othernh: 63, twoplusnh: -223}, {SLSD: "044", chg: -116, hisp: 33, whitenh: 46, blacknh: -28, aiannh: -22, asiannh: -27, nhopinh: -51, othernh: 18, twoplusnh: -85}, {SLSD: "045", chg: 62, hisp: 191, whitenh: -17, blacknh: 73, aiannh: 77, asiannh: 111, nhopinh: -10, othernh: -8, twoplusnh: -355}, {SLSD: "046", chg: 450, hisp: 614, whitenh: -109, blacknh: 29, aiannh: -55, asiannh: 43, nhopinh: 9, othernh: 22, twoplusnh: -103}, {SLSD: "047", chg: -149, hisp: -182, whitenh: 41, blacknh: -39, aiannh: 9, asiannh: -46, nhopinh: 2, othernh: 17, twoplusnh: 49}, {SLSD: "048", chg: -142, hisp: -348, whitenh: -36, blacknh: -32, aiannh: -20, asiannh: -13, nhopinh: -7, othernh: 37, twoplusnh: 277}, {SLSD: "049", chg: 525, hisp: 1, whitenh: 105, blacknh: 17, aiannh: -51, asiannh: 78, nhopinh: 31, othernh: 82, twoplusnh: 262}, {SLSD: "050", chg: -95, hisp: 664, whitenh: -21, blacknh: -71, aiannh: -2, asiannh: -78, nhopinh: -11, othernh: -70, twoplusnh: -506}, {SLSD: "051", chg: 409, hisp: -211, whitenh: 23, blacknh: 44, aiannh: -35, asiannh: -20, nhopinh: 24, othernh: 4, twoplusnh: 580}, {SLSD: "052", chg: -128, hisp: -73, whitenh: -2, blacknh: -5, aiannh: -33, asiannh: -45, nhopinh: -54, othernh: 44, twoplusnh: 40}, {SLSD: "053", chg: 315, hisp: -223, whitenh: -50, blacknh: 5, aiannh: 6, asiannh: -41, nhopinh: 103, othernh: -23, twoplusnh: 538}, {SLSD: "054", chg: -969, hisp: -190, whitenh: -84, blacknh: 18, aiannh: 53, asiannh: 42, nhopinh: -13, othernh: -80, twoplusnh: -715}, {SLSD: "055", chg: 250, hisp: 101, whitenh: -6, blacknh: 124, aiannh: -92, asiannh: 39, nhopinh: 20, othernh: 33, twoplusnh: 31}, {SLSD: "056", chg: 505, hisp: 389, whitenh: -152, blacknh: -65, aiannh: -29, asiannh: -72, nhopinh: 52, othernh: 69, twoplusnh: 313}, {SLSD: "057", chg: 364, hisp: -168, whitenh: -81, blacknh: 76, aiannh: -55, asiannh: -70, nhopinh: 51, othernh: -16, twoplusnh: 627}, {SLSD: "058", chg: 342, hisp: 24, whitenh: 43, blacknh: -31, aiannh: 74, asiannh: -5, nhopinh: -24, othernh: 44, twoplusnh: 217}, {SLSD: "059", chg: 386, hisp: -189, whitenh: -85, blacknh: -17, aiannh: 75, asiannh: 60, nhopinh: 78, othernh: -45, twoplusnh: 509}, {SLSD: "060", chg: -235, hisp: -192, whitenh: -51, blacknh: -1, aiannh: 26, asiannh: -42, nhopinh: -16, othernh: -58, twoplusnh: 99}, {SLSD: "061", chg: -267, hisp: 133, whitenh: -88, blacknh: 38, aiannh: 4, asiannh: 30, nhopinh: -98, othernh: -26, twoplusnh: -260}, {SLSD: "062", chg: -377, hisp: -144, whitenh: 105, blacknh: 14, aiannh: -17, asiannh: 74, nhopinh: -30, othernh: 2, twoplusnh: -381}, {SLSD: "063", chg: 275, hisp: 106, whitenh: -13, blacknh: -94, aiannh: -63, asiannh: 3, nhopinh: 29, othernh: -31, twoplusnh: 338}, {SLSD: "064", chg: -231, hisp: -318, whitenh: -27, blacknh: -9, aiannh: -57, asiannh: -13, nhopinh: -45, othernh: 79, twoplusnh: 159}, {SLSD: "065", chg: -665, hisp: -351, whitenh: 2, blacknh: 18, aiannh: -42, asiannh: 19, nhopinh: -23, othernh: -23, twoplusnh: -265}, {SLSD: "066", chg: -402, hisp: 96, whitenh: 16, blacknh: 24, aiannh: 47, asiannh: -129, nhopinh: -55, othernh: -38, twoplusnh: -363}, {SLSD: "067", chg: -376, hisp: -183, whitenh: 183, blacknh: -22, aiannh: -80, asiannh: -5, nhopinh: 5, othernh: 26, twoplusnh: -300}, {SLSD: "068", chg: 258, hisp: 117, whitenh: 67, blacknh: -32, aiannh: 11, asiannh: 14, nhopinh: 80, othernh: -30, twoplusnh: 31}, {SLSD: "069", chg: -239, hisp: -281, whitenh: -173, blacknh: -102, aiannh: -34, asiannh: -99, nhopinh: 14, othernh: 48, twoplusnh: 388}, {SLSD: "070", chg: -857, hisp: -130, whitenh: -127, blacknh: 72, aiannh: -22, asiannh: 31, nhopinh: -102, othernh: 9, twoplusnh: -588}, {SLSD: "071", chg: 419, hisp: 98, whitenh: 67, blacknh: -57, aiannh: 27, asiannh: 7, nhopinh: 37, othernh: 89, twoplusnh: 151}, {SLSD: "072", chg: 80, hisp: -2, whitenh: -13, blacknh: -6, aiannh: 52, asiannh: 66, nhopinh: -44, othernh: 28, twoplusnh: -1}, {SLSD: "073", chg: 378, hisp: 479, whitenh: -23, blacknh: 49, aiannh: -28, asiannh: 26, nhopinh: 15, othernh: 5, twoplusnh: -145}, {SLSD: "074", chg: 93, hisp: 154, whitenh: 72, blacknh: 38, aiannh: 7, asiannh: 16, nhopinh: -50, othernh: -59, twoplusnh: -85}, {SLSD: "075", chg: 304, hisp: -132, whitenh: 139, blacknh: 110, aiannh: 55, asiannh: -20, nhopinh: -7, othernh: -2, twoplusnh: 161}, {SLSD: "076", chg: -117, hisp: 84, whitenh: -24, blacknh: -76, aiannh: -71, asiannh: 13, nhopinh: 32, othernh: 8, twoplusnh: -83}, {SLSD: "077", chg: 284, hisp: 305, whitenh: -69, blacknh: 66, aiannh: 53, asiannh: 121, nhopinh: 16, othernh: -24, twoplusnh: -184}, {SLSD: "078", chg: 98, hisp: 218, whitenh: -53, blacknh: -28, aiannh: -61, asiannh: -1, nhopinh: 76, othernh: -25, twoplusnh: -28}, {SLSD: "079", chg: -434, hisp: -110, whitenh: 55, blacknh: -29, aiannh: 44, asiannh: 64, nhopinh: -53, othernh: 12, twoplusnh: -417}, {SLSD: "080", chg: -485, hisp: -573, whitenh: -43, blacknh: 51, aiannh: 8, asiannh: -112, nhopinh: -91, othernh: -28, twoplusnh: 303}
+      ]
+
+      datasf1 = [
+        {SLSD: "001", hisp: 30310.0, whitenh: 313391.0, blacknh: 4916.0, aiannh: 6732.0, asiannh: 5836.0, nhopinh: 535.0, othernh: 738.0, twoplusnh: 8392.0}, 
+        {SLSD: "002", hisp: 53606.0, whitenh: 277603.0, blacknh: 4542.0, aiannh: 10283.0, asiannh: 9099.0, nhopinh: 843.0, othernh: 818.0, twoplusnh: 8841.0}, 
+        {SLSD: "003", hisp: 64465.0, whitenh: 246629.0, blacknh: 5626.0, aiannh: 5181.0, asiannh: 20191.0, nhopinh: 758.0, othernh: 504.0, twoplusnh: 8997.0}, 
+        {SLSD: "004", hisp: 89543.0, whitenh: 225582.0, blacknh: 6346.0, aiannh: 2540.0, asiannh: 28979.0, nhopinh: 873.0, othernh: 608.0, twoplusnh: 8101.0}, 
+        {SLSD: "005", hisp: 77084.0, whitenh: 258122.0, blacknh: 7133.0, aiannh: 4673.0, asiannh: 5623.0, nhopinh: 426.0, othernh: 1164.0, twoplusnh: 6610.0}, 
+        {SLSD: "006", hisp: 36120.0, whitenh: 269935.0, blacknh: 8241.0, aiannh: 1851.0, asiannh: 25081.0, nhopinh: 804.0, othernh: 890.0, twoplusnh: 7690.0}, 
+        {SLSD: "007", hisp: 81020.0, whitenh: 166294.0, blacknh: 34076.0, aiannh: 2421.0, asiannh: 46915.0, nhopinh: 3123.0, othernh: 773.0, twoplusnh: 11478.0}, 
+        {SLSD: "008", hisp: 51954.0, whitenh: 231075.0, blacknh: 24701.0, aiannh: 2292.0, asiannh: 28734.0, nhopinh: 2058.0, othernh: 633.0, twoplusnh: 11147.0}, 
+        {SLSD: "009", hisp: 75875.0, whitenh: 130270.0, blacknh: 38915.0, aiannh: 1453.0, asiannh: 71691.0, nhopinh: 4628.0, othernh: 657.0, twoplusnh: 11359.0},
+         {SLSD: "010", hisp: 64431.0, whitenh: 263593.0, blacknh: 7981.0, aiannh: 1632.0, asiannh: 17899.0, nhopinh: 828.0, othernh: 1031.0, twoplusnh: 7152.0}, 
+         {SLSD: "011", hisp: 81787.0, whitenh: 165515.0, blacknh: 41824.0, aiannh: 1725.0, asiannh: 35489.0, nhopinh: 2384.0, othernh: 1268.0, twoplusnh: 11473.0}, 
+         {SLSD: "012", hisp: 98639.0, whitenh: 195297.0, blacknh: 9143.0, aiannh: 2090.0, asiannh: 19356.0, nhopinh: 1895.0, othernh: 648.0, twoplusnh: 7847.0}, 
+         {SLSD: "013", hisp: 117211.0, whitenh: 105101.0, blacknh: 29558.0, aiannh: 1533.0, asiannh: 57883.0, nhopinh: 1872.0, othernh: 543.0, twoplusnh: 8770.0}, 
+         {SLSD: "014", hisp: 78163.0, whitenh: 175739.0, blacknh: 33630.0, aiannh: 1302.0, asiannh: 55673.0, nhopinh: 2231.0, othernh: 760.0, twoplusnh: 10701.0}, 
+         {SLSD: "015", hisp: 70077.0, whitenh: 161096.0, blacknh: 57963.0, aiannh: 913.0, asiannh: 72504.0, nhopinh: 1100.0, othernh: 1592.0, twoplusnh: 11840.0}, 
+         {SLSD: "016", hisp: 34525.0, whitenh: 236496.0, blacknh: 8909.0, aiannh: 738.0, asiannh: 60061.0, nhopinh: 882.0, othernh: 717.0, twoplusnh: 8051.0}, 
+         {SLSD: "017", hisp: 70268.0, whitenh: 180156.0, blacknh: 30015.0, aiannh: 1229.0, asiannh: 113364.0, nhopinh: 1747.0, othernh: 1116.0, twoplusnh: 10866.0},
+          {SLSD: "018", hisp: 83448.0, whitenh: 99119.0, blacknh: 82972.0, aiannh: 1250.0, asiannh: 85701.0, nhopinh: 2082.0, othernh: 922.0, twoplusnh: 10130.0}, 
+          {SLSD: "019", hisp: 50284.0, whitenh: 146050.0, blacknh: 12526.0, aiannh: 581.0, asiannh: 171999.0, nhopinh: 1394.0, othernh: 1249.0, twoplusnh: 9224.0}, 
+          {SLSD: "020", hisp: 89046.0, whitenh: 102616.0, blacknh: 27545.0, aiannh: 995.0, asiannh: 110400.0, nhopinh: 5186.0, othernh: 684.0, twoplusnh: 11555.0}, 
+          {SLSD: "021", hisp: 154234.0, whitenh: 124725.0, blacknh: 10788.0, aiannh: 1825.0, asiannh: 19352.0, nhopinh: 1181.0, othernh: 503.0, twoplusnh: 5588.0}, 
+          {SLSD: "022", hisp: 76071.0, whitenh: 184167.0, blacknh: 6918.0, aiannh: 627.0, asiannh: 79201.0, nhopinh: 4398.0, othernh: 1214.0, twoplusnh: 8630.0}, 
+          {SLSD: "023", hisp: 96235.0, whitenh: 184653.0, blacknh: 15951.0, aiannh: 2682.0, asiannh: 35399.0, nhopinh: 574.0, othernh: 652.0, twoplusnh: 6676.0}, 
+          {SLSD: "024", hisp: 63185.0, whitenh: 180887.0, blacknh: 10229.0, aiannh: 587.0, asiannh: 91991.0, nhopinh: 2826.0, othernh: 779.0, twoplusnh: 7617.0}, 
+          {SLSD: "025", hisp: 62077.0, whitenh: 96609.0, blacknh: 9857.0, aiannh: 682.0, asiannh: 174239.0, nhopinh: 1877.0, othernh: 609.0, twoplusnh: 8758.0}, 
+          {SLSD: "026", hisp: 164124.0, whitenh: 133168.0, blacknh: 4035.0, aiannh: 3947.0, asiannh: 10659.0, nhopinh: 283.0, othernh: 419.0, twoplusnh: 4192.0}, 
+          {SLSD: "027", hisp: 144126.0, whitenh: 64185.0, blacknh: 11150.0, aiannh: 898.0, asiannh: 115436.0, nhopinh: 1369.0, othernh: 617.0, twoplusnh: 5906.0},
+           {SLSD: "028", hisp: 54436.0, whitenh: 192536.0, blacknh: 7921.0, aiannh: 779.0, asiannh: 89242.0, nhopinh: 1013.0, othernh: 575.0, twoplusnh: 8133.0}, 
+           {SLSD: "029", hisp: 73339.0, whitenh: 239832.0, blacknh: 8381.0, aiannh: 1409.0, asiannh: 33843.0, nhopinh: 1506.0, othernh: 747.0, twoplusnh: 9832.0}, {SLSD: "030", hisp: 199460.0, whitenh: 95794.0, blacknh: 6543.0, aiannh: 1255.0, asiannh: 17510.0, nhopinh: 673.0, othernh: 485.0, twoplusnh: 4202.0}, {SLSD: "031", hisp: 200692.0, whitenh: 67744.0, blacknh: 15538.0, aiannh: 1796.0, asiannh: 25170.0, nhopinh: 230.0, othernh: 535.0, twoplusnh: 3145.0}, {SLSD: "032", hisp: 201093.0, whitenh: 74121.0, blacknh: 22732.0, aiannh: 2087.0, asiannh: 11314.0, nhopinh: 304.0, othernh: 1127.0, twoplusnh: 3200.0}, {SLSD: "033", hisp: 111155.0, whitenh: 169243.0, blacknh: 28355.0, aiannh: 2827.0, asiannh: 9378.0, nhopinh: 1175.0, othernh: 607.0, twoplusnh: 6675.0}, {SLSD: "034", hisp: 95842.0, whitenh: 197539.0, blacknh: 15395.0, aiannh: 2779.0, asiannh: 16840.0, nhopinh: 486.0, othernh: 527.0, twoplusnh: 6313.0}, {SLSD: "035", hisp: 107896.0, whitenh: 219516.0, blacknh: 8293.0, aiannh: 1908.0, asiannh: 13437.0, nhopinh: 618.0, othernh: 894.0, twoplusnh: 6515.0}, {SLSD: "036", hisp: 120338.0, whitenh: 138646.0, blacknh: 40929.0, aiannh: 1546.0, asiannh: 13927.0, nhopinh: 599.0, othernh: 862.0, twoplusnh: 6551.0}, {SLSD: "037", hisp: 121331.0, whitenh: 215218.0, blacknh: 5000.0, aiannh: 1591.0, asiannh: 16843.0, nhopinh: 496.0, othernh: 620.0, twoplusnh: 6375.0}, {SLSD: "038", hisp: 81584.0, whitenh: 206331.0, blacknh: 11604.0, aiannh: 884.0, asiannh: 43096.0, nhopinh: 443.0, othernh: 818.0, twoplusnh: 7058.0}, {SLSD: "039", hisp: 219110.0, whitenh: 82039.0, blacknh: 11610.0, aiannh: 814.0, asiannh: 24545.0, nhopinh: 287.0, othernh: 722.0, twoplusnh: 4218.0}, {SLSD: "040", hisp: 124961.0, whitenh: 135126.0, blacknh: 34531.0, aiannh: 1304.0, asiannh: 29553.0, nhopinh: 954.0, othernh: 631.0, twoplusnh: 6625.0}, {SLSD: "041", hisp: 98798.0, whitenh: 180065.0, blacknh: 29409.0, aiannh: 813.0, asiannh: 45557.0, nhopinh: 438.0, othernh: 813.0, twoplusnh: 7693.0}, {SLSD: "042", hisp: 87893.0, whitenh: 236038.0, blacknh: 12826.0, aiannh: 2981.0, asiannh: 12177.0, nhopinh: 725.0, othernh: 450.0, twoplusnh: 5718.0}, {SLSD: "043", hisp: 81297.0, whitenh: 221903.0, blacknh: 7886.0, aiannh: 576.0, asiannh: 59245.0, nhopinh: 263.0, othernh: 730.0, twoplusnh: 9517.0}, {SLSD: "044", hisp: 129292.0, whitenh: 168057.0, blacknh: 6545.0, aiannh: 798.0, asiannh: 27589.0, nhopinh: 713.0, othernh: 454.0, twoplusnh: 5425.0}, {SLSD: "045", hisp: 98779.0, whitenh: 193752.0, blacknh: 14743.0, aiannh: 645.0, asiannh: 45761.0, nhopinh: 395.0, othernh: 797.0, twoplusnh: 9459.0}, {SLSD: "046", hisp: 141349.0, whitenh: 158809.0, blacknh: 16186.0, aiannh: 647.0, asiannh: 33384.0, nhopinh: 380.0, othernh: 951.0, twoplusnh: 6587.0}, {SLSD: "047", hisp: 203883.0, whitenh: 54972.0, blacknh: 35226.0, aiannh: 943.0, asiannh: 15836.0, nhopinh: 845.0, othernh: 512.0, twoplusnh: 3829.0}, {SLSD: "048", hisp: 199892.0, whitenh: 76464.0, blacknh: 9034.0, aiannh: 757.0, asiannh: 46773.0, nhopinh: 425.0, othernh: 487.0, twoplusnh: 3546.0}, {SLSD: "049", hisp: 106829.0, whitenh: 50423.0, blacknh: 2928.0, aiannh: 426.0, asiannh: 198247.0, nhopinh: 214.0, othernh: 291.0, twoplusnh: 3389.0}, {SLSD: "050", hisp: 44967.0, whitenh: 289035.0, blacknh: 15340.0, aiannh: 635.0, asiannh: 37994.0, nhopinh: 380.0, othernh: 1163.0, twoplusnh: 10816.0}, {SLSD: "051", hisp: 233855.0, whitenh: 45761.0, blacknh: 8807.0, aiannh: 695.0, asiannh: 54953.0, nhopinh: 213.0, othernh: 551.0, twoplusnh: 3396.0}, {SLSD: "052", hisp: 207699.0, whitenh: 68018.0, blacknh: 20937.0, aiannh: 867.0, asiannh: 26619.0, nhopinh: 680.0, othernh: 706.0, twoplusnh: 3737.0}, {SLSD: "053", hisp: 224267.0, whitenh: 30620.0, blacknh: 20882.0, aiannh: 646.0, asiannh: 73418.0, nhopinh: 236.0, othernh: 804.0, twoplusnh: 3425.0}, {SLSD: "054", hisp: 101520.0, whitenh: 119519.0, blacknh: 92705.0, aiannh: 623.0, asiannh: 48513.0, nhopinh: 482.0, othernh: 1757.0, twoplusnh: 10122.0}, {SLSD: "055", hisp: 94384.0, whitenh: 128295.0, blacknh: 9075.0, aiannh: 665.0, asiannh: 112228.0, nhopinh: 468.0, othernh: 554.0, twoplusnh: 5668.0}, {SLSD: "056", hisp: 216930.0, whitenh: 88733.0, blacknh: 11313.0, aiannh: 1991.0, asiannh: 6328.0, nhopinh: 271.0, othernh: 467.0, twoplusnh: 2273.0}, {SLSD: "057", hisp: 217904.0, whitenh: 73313.0, blacknh: 5607.0, aiannh: 888.0, asiannh: 43032.0, nhopinh: 540.0, othernh: 465.0, twoplusnh: 3103.0}, {SLSD: "058", hisp: 216254.0, whitenh: 53544.0, blacknh: 15076.0, aiannh: 798.0, asiannh: 51593.0, nhopinh: 843.0, othernh: 553.0, twoplusnh: 3194.0}, {SLSD: "059", hisp: 228124.0, whitenh: 10880.0, blacknh: 67188.0, aiannh: 383.0, asiannh: 8701.0, nhopinh: 138.0, othernh: 1028.0, twoplusnh: 2602.0}, {SLSD: "060", hisp: 156673.0, whitenh: 118631.0, blacknh: 18292.0, aiannh: 1259.0, asiannh: 28464.0, nhopinh: 1097.0, othernh: 540.0, twoplusnh: 4929.0}, {SLSD: "061", hisp: 154134.0, whitenh: 99934.0, blacknh: 40341.0, aiannh: 1185.0, asiannh: 25464.0, nhopinh: 1240.0, othernh: 680.0, twoplusnh: 6323.0}, {SLSD: "062", hisp: 137789.0, whitenh: 93927.0, blacknh: 89533.0, aiannh: 779.0, asiannh: 23234.0, nhopinh: 1668.0, othernh: 1288.0, twoplusnh: 6797.0}, {SLSD: "063", hisp: 226451.0, whitenh: 43191.0, blacknh: 24079.0, aiannh: 682.0, asiannh: 19865.0, nhopinh: 1893.0, othernh: 494.0, twoplusnh: 2831.0}, {SLSD: "064", hisp: 185679.0, whitenh: 13482.0, blacknh: 87910.0, aiannh: 632.0, asiannh: 24897.0, nhopinh: 3124.0, othernh: 654.0, twoplusnh: 3433.0}, {SLSD: "065", hisp: 117326.0, whitenh: 121769.0, blacknh: 9870.0, aiannh: 880.0, asiannh: 87805.0, nhopinh: 1517.0, othernh: 584.0, twoplusnh: 5902.0}, {SLSD: "066", hisp: 67868.0, whitenh: 179993.0, blacknh: 15991.0, aiannh: 745.0, asiannh: 89478.0, nhopinh: 1464.0, othernh: 999.0, twoplusnh: 8531.0}, {SLSD: "067", hisp: 99320.0, whitenh: 183444.0, blacknh: 15556.0, aiannh: 1522.0, asiannh: 21139.0, nhopinh: 961.0, othernh: 450.0, twoplusnh: 6417.0}, {SLSD: "068", hisp: 86274.0, whitenh: 182460.0, blacknh: 5567.0, aiannh: 785.0, asiannh: 65325.0, nhopinh: 789.0, othernh: 640.0, twoplusnh: 7004.0}, {SLSD: "069", hisp: 230895.0, whitenh: 49871.0, blacknh: 5132.0, aiannh: 584.0, asiannh: 34072.0, nhopinh: 972.0, othernh: 416.0, twoplusnh: 2639.0}, {SLSD: "070", hisp: 120791.0, whitenh: 144133.0, blacknh: 36731.0, aiannh: 1201.0, asiannh: 45108.0, nhopinh: 2289.0, othernh: 819.0, twoplusnh: 8177.0}, {SLSD: "071", hisp: 71946.0, whitenh: 239724.0, blacknh: 13908.0, aiannh: 3192.0, asiannh: 11599.0, nhopinh: 1369.0, othernh: 531.0, twoplusnh: 8588.0}, {SLSD: "072", hisp: 79920.0, whitenh: 152605.0, blacknh: 3513.0, aiannh: 802.0, asiannh: 116347.0, nhopinh: 1447.0, othernh: 519.0, twoplusnh: 6042.0}, {SLSD: "073", hisp: 55047.0, whitenh: 248123.0, blacknh: 4112.0, aiannh: 874.0, asiannh: 29639.0, nhopinh: 527.0, othernh: 577.0, twoplusnh: 7501.0}, {SLSD: "074", hisp: 51189.0, whitenh: 251820.0, blacknh: 4226.0, aiannh: 735.0, asiannh: 63562.0, nhopinh: 861.0, othernh: 726.0, twoplusnh: 9190.0}, {SLSD: "075", hisp: 104586.0, whitenh: 191566.0, blacknh: 8050.0, aiannh: 2965.0, asiannh: 24433.0, nhopinh: 925.0, othernh: 506.0, twoplusnh: 6211.0}, {SLSD: "076", hisp: 89760.0, whitenh: 222375.0, blacknh: 10961.0, aiannh: 1456.0, asiannh: 20770.0, nhopinh: 2411.0, othernh: 668.0, twoplusnh: 7418.0}, {SLSD: "077", hisp: 38440.0, whitenh: 211504.0, blacknh: 9090.0, aiannh: 845.0, asiannh: 80373.0, nhopinh: 1200.0, othernh: 718.0, twoplusnh: 9166.0}, {SLSD: "078", hisp: 64971.0, whitenh: 268182.0, blacknh: 16146.0, aiannh: 1379.0, asiannh: 37043.0, nhopinh: 1036.0, othernh: 1172.0, twoplusnh: 10058.0}, {SLSD: "079", hisp: 104302.0, whitenh: 133553.0, blacknh: 35077.0, aiannh: 1147.0, asiannh: 64697.0, nhopinh: 2531.0, othernh: 677.0, twoplusnh: 9317.0}, {SLSD: "080", hisp: 211077.0, whitenh: 59612.0, blacknh: 22159.0, aiannh: 953.0, asiannh: 34367.0, nhopinh: 1488.0, othernh: 575.0, twoplusnh: 5349.0}, {SLSD: "CA", hisp: 9257499.0, whitenh: 12409858.0, blacknh: 1640279.0, aiannh: 125020.0, asiannh: 3809082.0, nhopinh: 96399.0, othernh: 59024.0, twoplusnh: 561755.0}
+      ]
+
+      dataDP = [
+        {SLSD: "001", hisp: 29949.0, whitenh: 313682.0, blacknh: 4882.0, aiannh: 6960.0, asiannh: 5795.0, nhopinh: 510.0, othernh: 722.0, twoplusnh: 8619.0}, {SLSD: "002", hisp: 53049.0, whitenh: 277878.0, blacknh: 4531.0, aiannh: 10581.0, asiannh: 9063.0, nhopinh: 875.0, othernh: 832.0, twoplusnh: 8922.0}, {SLSD: "003", hisp: 64289.0, whitenh: 246652.0, blacknh: 5614.0, aiannh: 5239.0, asiannh: 20251.0, nhopinh: 765.0, othernh: 491.0, twoplusnh: 9017.0}, {SLSD: "004", hisp: 89547.0, whitenh: 225646.0, blacknh: 6353.0, aiannh: 2576.0, asiannh: 28995.0, nhopinh: 890.0, othernh: 595.0, twoplusnh: 8172.0}, {SLSD: "005", hisp: 76745.0, whitenh: 258340.0, blacknh: 7050.0, aiannh: 4765.0, asiannh: 5577.0, nhopinh: 443.0, othernh: 1148.0, twoplusnh: 6762.0}, {SLSD: "006", hisp: 36164.0, whitenh: 269980.0, blacknh: 8300.0, aiannh: 1854.0, asiannh: 25084.0, nhopinh: 820.0, othernh: 900.0, twoplusnh: 7705.0}, {SLSD: "007", hisp: 80668.0, whitenh: 166309.0, blacknh: 34050.0, aiannh: 2468.0, asiannh: 46946.0, nhopinh: 3175.0, othernh: 751.0, twoplusnh: 11398.0}, {SLSD: "008", hisp: 52143.0, whitenh: 231140.0, blacknh: 24770.0, aiannh: 2276.0, asiannh: 28659.0, nhopinh: 2076.0, othernh: 643.0, twoplusnh: 11356.0}, {SLSD: "009", hisp: 75746.0, whitenh: 130247.0, blacknh: 38862.0, aiannh: 1562.0, asiannh: 71677.0, nhopinh: 4560.0, othernh: 678.0, twoplusnh: 11083.0}, {SLSD: "010", hisp: 64526.0, whitenh: 263511.0, blacknh: 7971.0, aiannh: 1593.0, asiannh: 17899.0, nhopinh: 834.0, othernh: 1038.0, twoplusnh: 7140.0}, {SLSD: "011", hisp: 81458.0, whitenh: 165552.0, blacknh: 41794.0, aiannh: 1675.0, asiannh: 35491.0, nhopinh: 2468.0, othernh: 1246.0, twoplusnh: 11330.0}, {SLSD: "012", hisp: 98687.0, whitenh: 195305.0, blacknh: 9201.0, aiannh: 2077.0, asiannh: 19341.0, nhopinh: 1902.0, othernh: 660.0, twoplusnh: 7908.0}, {SLSD: "013", hisp: 116984.0, whitenh: 105081.0, blacknh: 29502.0, aiannh: 1593.0, asiannh: 57927.0, nhopinh: 1861.0, othernh: 530.0, twoplusnh: 8609.0}, {SLSD: "014", hisp: 78089.0, whitenh: 175692.0, blacknh: 33723.0, aiannh: 1238.0, asiannh: 55706.0, nhopinh: 2196.0, othernh: 792.0, twoplusnh: 10633.0}, {SLSD: "015", hisp: 70127.0, whitenh: 161049.0, blacknh: 57895.0, aiannh: 982.0, asiannh: 72610.0, nhopinh: 1161.0, othernh: 1615.0, twoplusnh: 12059.0}, {SLSD: "016", hisp: 35045.0, whitenh: 236526.0, blacknh: 8942.0, aiannh: 718.0, asiannh: 60050.0, nhopinh: 830.0, othernh: 657.0, twoplusnh: 8243.0}, {SLSD: "017", hisp: 70007.0, whitenh: 180040.0, blacknh: 30028.0, aiannh: 1186.0, asiannh: 113328.0, nhopinh: 1768.0, othernh: 1151.0, twoplusnh: 10724.0}, {SLSD: "018", hisp: 83575.0, whitenh: 99133.0, blacknh: 82995.0, aiannh: 1220.0, asiannh: 85732.0, nhopinh: 2112.0, othernh: 942.0, twoplusnh: 10117.0}, {SLSD: "019", hisp: 50403.0, whitenh: 146148.0, blacknh: 12536.0, aiannh: 640.0, asiannh: 172109.0, nhopinh: 1354.0, othernh: 1234.0, twoplusnh: 9214.0}, {SLSD: "020", hisp: 88701.0, whitenh: 102507.0, blacknh: 27562.0, aiannh: 978.0, asiannh: 110346.0, nhopinh: 5100.0, othernh: 672.0, twoplusnh: 11262.0}, {SLSD: "021", hisp: 154282.0, whitenh: 124720.0, blacknh: 10762.0, aiannh: 1752.0, asiannh: 19382.0, nhopinh: 1171.0, othernh: 498.0, twoplusnh: 5655.0}, {SLSD: "022", hisp: 76169.0, whitenh: 184130.0, blacknh: 6985.0, aiannh: 578.0, asiannh: 79206.0, nhopinh: 4475.0, othernh: 1191.0, twoplusnh: 8601.0}, {SLSD: "023", hisp: 96288.0, whitenh: 184767.0, blacknh: 15996.0, aiannh: 2697.0, asiannh: 35456.0, nhopinh: 478.0, othernh: 611.0, twoplusnh: 6452.0}, {SLSD: "024", hisp: 63642.0, whitenh: 180836.0, blacknh: 10196.0, aiannh: 571.0, asiannh: 92096.0, nhopinh: 2826.0, othernh: 766.0, twoplusnh: 7850.0}, {SLSD: "025", hisp: 62025.0, whitenh: 96579.0, blacknh: 9893.0, aiannh: 724.0, asiannh: 174244.0, nhopinh: 1874.0, othernh: 630.0, twoplusnh: 8653.0}, {SLSD: "026", hisp: 164231.0, whitenh: 133134.0, blacknh: 4028.0, aiannh: 3929.0, asiannh: 10629.0, nhopinh: 297.0, othernh: 446.0, twoplusnh: 4179.0}, {SLSD: "027", hisp: 143794.0, whitenh: 64119.0, blacknh: 11114.0, aiannh: 784.0, asiannh: 115395.0, nhopinh: 1341.0, othernh: 627.0, twoplusnh: 5929.0}, {SLSD: "028", hisp: 54683.0, whitenh: 192542.0, blacknh: 7930.0, aiannh: 779.0, asiannh: 89195.0, nhopinh: 1071.0, othernh: 610.0, twoplusnh: 8164.0}, {SLSD: "029", hisp: 73425.0, whitenh: 239884.0, blacknh: 8385.0, aiannh: 1397.0, asiannh: 33901.0, nhopinh: 1485.0, othernh: 729.0, twoplusnh: 9607.0}, {SLSD: "030", hisp: 199489.0, whitenh: 95650.0, blacknh: 6527.0, aiannh: 1180.0, asiannh: 17441.0, nhopinh: 682.0, othernh: 469.0, twoplusnh: 4344.0}, {SLSD: "031", hisp: 200753.0, whitenh: 67555.0, blacknh: 15502.0, aiannh: 1733.0, asiannh: 25122.0, nhopinh: 302.0, othernh: 586.0, twoplusnh: 3386.0}, {SLSD: "032", hisp: 201039.0, whitenh: 73974.0, blacknh: 22688.0, aiannh: 2000.0, asiannh: 11294.0, nhopinh: 277.0, othernh: 1126.0, twoplusnh: 3329.0}, {SLSD: "033", hisp: 111324.0, whitenh: 169360.0, blacknh: 28350.0, aiannh: 2849.0, asiannh: 9330.0, nhopinh: 1167.0, othernh: 592.0, twoplusnh: 6729.0}, {SLSD: "034", hisp: 95964.0, whitenh: 197677.0, blacknh: 15429.0, aiannh: 2810.0, asiannh: 16846.0, nhopinh: 498.0, othernh: 500.0, twoplusnh: 6229.0}, {SLSD: "035", hisp: 107748.0, whitenh: 219557.0, blacknh: 8322.0, aiannh: 1905.0, asiannh: 13412.0, nhopinh: 550.0, othernh: 909.0, twoplusnh: 6568.0}, {SLSD: "036", hisp: 120342.0, whitenh: 138629.0, blacknh: 40895.0, aiannh: 1490.0, asiannh: 13996.0, nhopinh: 520.0, othernh: 878.0, twoplusnh: 6247.0}, {SLSD: "037", hisp: 121562.0, whitenh: 215154.0, blacknh: 5042.0, aiannh: 1574.0, asiannh: 16771.0, nhopinh: 540.0, othernh: 634.0, twoplusnh: 6479.0}, {SLSD: "038", hisp: 81993.0, whitenh: 206413.0, blacknh: 11577.0, aiannh: 838.0, asiannh: 43126.0, nhopinh: 478.0, othernh: 812.0, twoplusnh: 6895.0}, {SLSD: "039", hisp: 219191.0, whitenh: 82015.0, blacknh: 11504.0, aiannh: 725.0, asiannh: 24506.0, nhopinh: 362.0, othernh: 707.0, twoplusnh: 4612.0}, {SLSD: "040", hisp: 124742.0, whitenh: 135114.0, blacknh: 34552.0, aiannh: 1280.0, asiannh: 29636.0, nhopinh: 952.0, othernh: 583.0, twoplusnh: 6420.0}, {SLSD: "041", hisp: 98787.0, whitenh: 180089.0, blacknh: 29397.0, aiannh: 943.0, asiannh: 45390.0, nhopinh: 420.0, othernh: 760.0, twoplusnh: 7364.0}, {SLSD: "042", hisp: 88272.0, whitenh: 235945.0, blacknh: 12810.0, aiannh: 2959.0, asiannh: 12109.0, nhopinh: 758.0, othernh: 406.0, twoplusnh: 5878.0}, {SLSD: "043", hisp: 81650.0, whitenh: 221896.0, blacknh: 7892.0, aiannh: 588.0, asiannh: 59340.0, nhopinh: 265.0, othernh: 793.0, twoplusnh: 9294.0}, {SLSD: "044", hisp: 129325.0, whitenh: 168103.0, blacknh: 6517.0, aiannh: 776.0, asiannh: 27562.0, nhopinh: 662.0, othernh: 472.0, twoplusnh: 5340.0}, {SLSD: "045", hisp: 98970.0, whitenh: 193735.0, blacknh: 14816.0, aiannh: 722.0, asiannh: 45872.0, nhopinh: 385.0, othernh: 789.0, twoplusnh: 9104.0}, {SLSD: "046", hisp: 141963.0, whitenh: 158700.0, blacknh: 16215.0, aiannh: 592.0, asiannh: 33427.0, nhopinh: 389.0, othernh: 973.0, twoplusnh: 6484.0}, {SLSD: "047", hisp: 203701.0, whitenh: 55013.0, blacknh: 35187.0, aiannh: 952.0, asiannh: 15790.0, nhopinh: 847.0, othernh: 529.0, twoplusnh: 3878.0}, {SLSD: "048", hisp: 199544.0, whitenh: 76428.0, blacknh: 9002.0, aiannh: 737.0, asiannh: 46760.0, nhopinh: 418.0, othernh: 524.0, twoplusnh: 3823.0}, {SLSD: "049", hisp: 106830.0, whitenh: 50528.0, blacknh: 2945.0, aiannh: 375.0, asiannh: 198325.0, nhopinh: 245.0, othernh: 373.0, twoplusnh: 3651.0}, {SLSD: "050", hisp: 45631.0, whitenh: 289014.0, blacknh: 15269.0, aiannh: 633.0, asiannh: 37916.0, nhopinh: 369.0, othernh: 1093.0, twoplusnh: 10310.0}, {SLSD: "051", hisp: 233644.0, whitenh: 45784.0, blacknh: 8851.0, aiannh: 660.0, asiannh: 54933.0, nhopinh: 237.0, othernh: 555.0, twoplusnh: 3976.0}, {SLSD: "052", hisp: 207626.0, whitenh: 68016.0, blacknh: 20932.0, aiannh: 834.0, asiannh: 26574.0, nhopinh: 626.0, othernh: 750.0, twoplusnh: 3777.0}, {SLSD: "053", hisp: 224044.0, whitenh: 30570.0, blacknh: 20887.0, aiannh: 652.0, asiannh: 73377.0, nhopinh: 339.0, othernh: 781.0, twoplusnh: 3963.0}, 
+        {SLSD: "054", hisp: 101330.0, whitenh: 119435.0, blacknh: 92723.0, aiannh: 676.0, asiannh: 48555.0, nhopinh: 469.0, othernh: 1677.0, twoplusnh: 9407.0}, {SLSD: "055", hisp: 94485.0, whitenh: 128289.0, blacknh: 9199.0, aiannh: 573.0, asiannh: 112267.0, nhopinh: 488.0, othernh: 587.0, twoplusnh: 5699.0}, {SLSD: "056", hisp: 217319.0, whitenh: 88581.0, blacknh: 11248.0, aiannh: 1962.0, asiannh: 6256.0, nhopinh: 323.0, othernh: 536.0, twoplusnh: 2586.0}, {SLSD: "057", hisp: 217736.0, whitenh: 73232.0, blacknh: 5683.0, aiannh: 833.0, asiannh: 42962.0, nhopinh: 591.0, othernh: 449.0, twoplusnh: 3730.0}, {SLSD: "058", hisp: 216278.0, whitenh: 53587.0, blacknh: 15045.0, aiannh: 872.0, asiannh: 51588.0, nhopinh: 819.0, othernh: 597.0, twoplusnh: 3411.0}, {SLSD: "059", hisp: 227935.0, whitenh: 10795.0, blacknh: 67171.0, aiannh: 458.0, asiannh: 8761.0, nhopinh: 216.0, othernh: 983.0, twoplusnh: 3111.0}, {SLSD: "060", hisp: 156481.0, whitenh: 118580.0, blacknh: 18291.0, aiannh: 1285.0, asiannh: 28422.0, nhopinh: 1081.0, othernh: 482.0, twoplusnh: 5028.0}, {SLSD: "061", hisp: 154267.0, whitenh: 99846.0, blacknh: 40379.0, aiannh: 1189.0, asiannh: 25494.0, nhopinh: 1142.0, othernh: 654.0, twoplusnh: 6063.0}, {SLSD: "062", hisp: 137645.0, whitenh: 94032.0, blacknh: 89547.0, aiannh: 762.0, asiannh: 23308.0, nhopinh: 1638.0, othernh: 1290.0, twoplusnh: 6416.0}, {SLSD: "063", hisp: 226557.0, whitenh: 43178.0, blacknh: 23985.0, aiannh: 619.0, asiannh: 19868.0, nhopinh: 1922.0, othernh: 463.0, twoplusnh: 3169.0}, {SLSD: "064", hisp: 185361.0, whitenh: 13455.0, blacknh: 87901.0, aiannh: 575.0, asiannh: 24884.0, nhopinh: 3079.0, othernh: 733.0, twoplusnh: 3592.0}, {SLSD: "065", hisp: 116975.0, whitenh: 121771.0, blacknh: 9888.0, aiannh: 838.0, asiannh: 87824.0, nhopinh: 1494.0, othernh: 561.0, twoplusnh: 5637.0}, {SLSD: "066", hisp: 67964.0, whitenh: 180009.0, blacknh: 16015.0, aiannh: 792.0, asiannh: 89349.0, nhopinh: 1409.0, othernh: 961.0, twoplusnh: 8168.0}, {SLSD: "067", hisp: 99137.0, whitenh: 183627.0, blacknh: 15534.0, aiannh: 1442.0, asiannh: 21134.0, nhopinh: 966.0, othernh: 476.0, twoplusnh: 6117.0}, {SLSD: "068", hisp: 86391.0, whitenh: 182527.0, blacknh: 5535.0, aiannh: 796.0, asiannh: 65339.0, nhopinh: 869.0, othernh: 610.0, twoplusnh: 7035.0}, {SLSD: "069", hisp: 230614.0, whitenh: 49698.0, blacknh: 5030.0, aiannh: 550.0, asiannh: 33973.0, nhopinh: 986.0, othernh: 464.0, twoplusnh: 3027.0}, {SLSD: "070", hisp: 120661.0, whitenh: 144006.0, blacknh: 36803.0, aiannh: 1179.0, asiannh: 45139.0, nhopinh: 2187.0, othernh: 828.0, twoplusnh: 7589.0}, {SLSD: "071", hisp: 72044.0, whitenh: 239791.0, blacknh: 13851.0, aiannh: 3219.0, asiannh: 11606.0, nhopinh: 1406.0, othernh: 620.0, twoplusnh: 8739.0}, {SLSD: "072", hisp: 79918.0, whitenh: 152592.0, blacknh: 3507.0, aiannh: 854.0, asiannh: 116413.0, nhopinh: 1403.0, othernh: 547.0, twoplusnh: 6041.0}, {SLSD: "073", hisp: 55526.0, whitenh: 248100.0, blacknh: 4161.0, aiannh: 846.0, asiannh: 29665.0, nhopinh: 542.0, othernh: 582.0, twoplusnh: 7356.0}, {SLSD: "074", hisp: 51343.0, whitenh: 251892.0, blacknh: 4264.0, aiannh: 742.0, asiannh: 63578.0, nhopinh: 811.0, othernh: 667.0, twoplusnh: 9105.0}, {SLSD: "075", hisp: 104454.0, whitenh: 191705.0, blacknh: 8160.0, aiannh: 3020.0, asiannh: 24413.0, nhopinh: 918.0, othernh: 504.0, twoplusnh: 6372.0}, {SLSD: "076", hisp: 89844.0, whitenh: 222351.0, blacknh: 10885.0, aiannh: 1385.0, asiannh: 20783.0, nhopinh: 2443.0, othernh: 676.0, twoplusnh: 7335.0}, {SLSD: "077", hisp: 38745.0, whitenh: 211435.0, blacknh: 9156.0, aiannh: 898.0, asiannh: 80494.0, nhopinh: 1216.0, othernh: 694.0, twoplusnh: 8982.0}, {SLSD: "078", hisp: 65189.0, whitenh: 268129.0, blacknh: 16118.0, aiannh: 1318.0, asiannh: 37042.0, nhopinh: 1112.0, othernh: 1147.0, twoplusnh: 10030.0}, {SLSD: "079", hisp: 104192.0, whitenh: 133608.0, blacknh: 35048.0, aiannh: 1191.0, asiannh: 64761.0, nhopinh: 2478.0, othernh: 689.0, twoplusnh: 8900.0}, {SLSD: "080", hisp: 210504.0, whitenh: 59569.0, blacknh: 22210.0, aiannh: 961.0, asiannh: 34255.0, nhopinh: 1397.0, othernh: 547.0, twoplusnh: 5652.0}, {SLSD: 'CA', hisp: 9257470.0, whitenh: 12409868.0, blacknh: 1640295.0, aiannh: 125034.0, asiannh: 3809078.0, nhopinh: 96411.0, othernh: 59023.0, twoplusnh: 561740.0}
+      ]
+
+      //*************************************** Begin bar chart construction ****************************************
+        var w = document.getElementById('rtSide').offsetWidth * 0.95,
+        // h = w * 0.4,
+        h = document.getElementById('sf1Bar').offsetHeight,
+        h2 = h - 80;
+        
+        var svg = d3.select('#sf1Bar').append('svg')
+          .attr("height", h)	
+          .attr("width", w);
+
+        var g = svg.append("g").attr("transform", "translate(40, 20)");
+
+        var svg1 = d3.select('#dpBar').append('svg')
+          .attr("height", h)	
+          .attr("width", w);
+
+        var g1 = svg1.append("g").attr("transform", "translate(40, 20)");
+
+        var svg2 = d3.select('#diffBar').append('svg')
+          .attr("height", h)	
+          .attr("width", w);
+
+        var g2 = svg2.append("g").attr("transform", "translate(40, 20)");
+
+        var x = d3.scaleBand().range([0, w - 60]).padding(0.2),
+            y = d3.scaleLinear().rangeRound([h2, 0]);
+
+        
+        var svg3 = d3.select('#chgTotal').append('svg')
+          .attr("height", 20)	
+          .attr("width", w);
+
+        var g3 = svg3.append("g").attr("transform", "translate(40, 15)");
+        
+        function make_y_gridlines() {
+		      return d3.axisLeft(y).ticks(8)
+	      }
+
+      //*************************************************************************************************************
+      //* SF1 BAR CHART ******
+      //*************************************************************************************************************
+
+        var nest = d3.nest().key(function(d) {return d.SLSD; }).entries(datasf1); console.log(nest);
+        
+        var barChart = function(caslsd) {
+          var caNest = nest.filter(function(d) { return d.key == caslsd; }); console.log(caNest[0].values["hisp"]);
+          values2 = caNest[0].values; // console.log(values2[0]);
+          var rate = values2[0]; //console.log(rate);
+
+          var dsf1 = [
+            {name: "Hispanic, Any Race", value:values2[0]["hisp"]},
+            {name: "White, Non-Hispanic", value:values2[0]["whitenh"]},
+            {name: "Black, Non-Hispanic", value:values2[0]["blacknh"]},
+            {name: "American Indian/AK Non-Hispanic", value:values2[0]["aiannh"]},
+            {name: "Asian Non-Hispanic", value:values2[0]["asiannh"]},
+            {name: "Native Hawaiian/PI Non-Hispanic", value:values2[0]["nhopinh"]},
+            {name: "Other Race Non-Hispanic", value:values2[0]["othernh"]},
+            {name: "Two or More Races Non-Hispanic", value:values2[0]["twoplusnh"]},
+          ]; // console.log(dsf1.length);
+
+          res=[];
+          dsf1.forEach(function(d){
+            res.push(d.value);
+          });
+
+          total = d3.sum(res);
+          
+          x.domain(dsf1.map(function(d) {return d.name; }));
+          y.domain([0, d3.max(res)]);
+
+          g.append("g")
+            .attr("class", "axis axis--x")
+            .attr("transform", "translate(0," + h2 + ")")
+            .call(d3.axisBottom(x))
+          .selectAll(".tick text")
+            .call(wrap, x.bandwidth());
+
+          g.append("g")
+            .attr("class", "axis axis--y")
+            .call(d3.axisLeft(y)/*.ticks(10,"")*/.tickFormat(d3.format(".2s")) )
+          .append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 6)
+            .attr("dy", "0.71em")
+            .attr("text-anchor", "end");
+            //.text("Percent in Poverty");
+
+          g.selectAll(".bar")
+            .data(dsf1)
+            .enter().append("rect")
+              .attr("class", "bar")
+              .attr("x", function(d) {return x(d.name); })
+              .attr("y", function(d) {return y(d.value); })
+              .attr("width", x.bandwidth())
+              .attr("height", function(d) {return h2 - y(d.value); })
+              //.style("fill", "rgb(253,141,60)");
+              .style("fill", "rgb(0,77,168)");
+
+          g.selectAll("text.bar")
+            .data(dsf1)
+            .enter().append("text")
+              .attr("class", "barText")
+              .attr("text-anchor", "middle")
+              .attr("x", function(d){return x(d.name) + x.bandwidth()/2; })
+              .attr("y", function(d){return y(d.value) -5; })
+              //.text(function(d){ return (d.value * 100).toFixed(1) + "%"; })
+              .text(function(d){ return (d.value).toLocaleString(); })
+              .style("font-size", "12px");
+
+          g.selectAll("text.lbl")
+            .data([total])
+            .enter().append("text")
+              .attr("class", "lblText")
+              //.attr("text-anchor", "left")
+              .attr("x", w * 0.5)
+              .attr("y", h * 0.01)
+              .html(function(d) {return "Total Population 18+: "+ d.toLocaleString();})
+              .style("font-size", "13px");
+        };
+
+      barChart('CA');
+
+      //****** UPDATE SF1 BAR CHART *************************
+
+      var updateBarChartSF1 = function(caslsd) {
+        var caNest = nest.filter(function(d) { return d.key == caslsd; }); //console.log(caNest[0].values["hisp"]);
+        var values2 = caNest[0].values; // console.log(values2[0]);
+        var rate = values2[0]; // console.log(rate);
+
+        var dsf1 = [
+          {name: "Hispanic, Any Race", value:values2[0]["hisp"]},
+          {name: "White, Non-Hispanic", value:values2[0]["whitenh"]},
+          {name: "Black, Non-Hispanic", value:values2[0]["blacknh"]},
+          {name: "American Indian/AK Non-Hispanic", value:values2[0]["aiannh"]},
+          {name: "Asian Non-Hispanic", value:values2[0]["asiannh"]},
+          {name: "Native Hawaiian/PI Non-Hispanic", value:values2[0]["nhopinh"]},
+          {name: "Other Race Non-Hispanic", value:values2[0]["othernh"]},
+          {name: "Two or More Races Non-Hispanic", value:values2[0]["twoplusnh"]},
+        ]; // console.log(dsf1.length);
+
+        res=[];
+        dsf1.forEach(function(d){
+          res.push(d.value);
+        });
+
+        // alert(d3.max(res));
+
+        totalDP = d3.sum(res);
+        
+        // x.domain(dDP.map(function(d) {return d.name; }));
+        y.domain([0, d3.max(resDP)]);
+
+        var bar = g.selectAll(".bar").remove().exit().data(dsf1);
+        
+        bar.enter().append("rect")
+          .attr("class", "bar")
+          .attr("x", function(d) {return x(d.name); })
+          .attr("y", function(d) {return y(d.value); })
+          .attr("width", x.bandwidth())
+          .attr("height", function(d) {return h2 - y(d.value); })
+          // .style("fill", "rgb(253,141,60)");
+          .style("fill", "rgb(0,77,168)");
+
+        barText = g.selectAll(".barText").remove().exit().data(dsf1);
+
+        barText.enter().append("text")
+            .attr("class", "barText")
+            .attr("text-anchor", "middle")
+            .attr("x", function(d){return x(d.name) + x.bandwidth()/2; })
+            .attr("y", function(d){return y(d.value) -5; })
+            //.text(function(d){ return (d.value * 100).toFixed(1) + "%"; })
+            .text(function(d){ return (d.value).toLocaleString(); })
+            .style("font-size", "12px");
+
+        lblText = g.selectAll(".lblText").remove().exit().data([totalDP]);
+
+        lblText.enter().append("text")
+            .attr("class", "lblText")
+            //.attr("text-anchor", "left")
+            .attr("x", w * 0.5)
+            .attr("y", h * 0.01)
+            .text(function(d) {return "Total Population 18+: " + d.toLocaleString();})
+            .style("font-size", "13px");
+
+        g.selectAll(".axis--y").remove();
+
+        g.append("g")
+          .attr("class", "axis axis--y")
+          .call(d3.axisLeft(y)/*.ticks(10,"")*/.tickFormat(d3.format(".2s")) )
+        .append("text")
+          .attr("transform", "rotate(-90)")
+          .attr("y", 6)
+          .attr("dy", "0.71em")
+          .attr("text-anchor", "end");
+        
+      };
+
+      //*************************************************************************************************************
+      //* DP BAR CHART ******
+      //*************************************************************************************************************
+
+      var nest2 = d3.nest().key(function(d) {return d.SLSD; }).entries(dataDP); // console.log(nest2);
+        
+      var barChartDP = function(caslsd) {
+        var caNestDP = nest2.filter(function(d) { return d.key == caslsd; }); //console.log(caNest[0].values["hisp"]);
+        values2DP = caNestDP[0].values; // console.log(values2DP[0]);
+        var rateDP = values2DP[0]; // console.log(rateDP);
+
+        var dDP = [
+          {name: "Hispanic, Any Race", value:values2DP[0]["hisp"]},
+          {name: "White, Non-Hispanic", value:values2DP[0]["whitenh"]},
+          {name: "Black, Non-Hispanic", value:values2DP[0]["blacknh"]},
+          {name: "American Indian/AK Non-Hispanic", value:values2DP[0]["aiannh"]},
+          {name: "Asian Non-Hispanic", value:values2DP[0]["asiannh"]},
+          {name: "Native Hawaiian/PI Non-Hispanic", value:values2DP[0]["nhopinh"]},
+          {name: "Other Race Non-Hispanic", value:values2DP[0]["othernh"]},
+          {name: "Two or More Races Non-Hispanic", value:values2DP[0]["twoplusnh"]},
+        ]; // console.log(dDP.length);
+
+        resDP=[];
+        dDP.forEach(function(d){
+          resDP.push(d.value);
+        });
+
+        totalDP = d3.sum(resDP);
+        
+        x.domain(dDP.map(function(d) {return d.name; }));
+        y.domain([0, d3.max(resDP)]);
+
+        g1.append("g")
+          .attr("class", "axis axis--x")
+          .attr("transform", "translate(0," + h2 + ")")
+          .call(d3.axisBottom(x))
+        .selectAll(".tick text")
+          .call(wrap, x.bandwidth());
+
+        g1.append("g")
+          .attr("class", "axis axis--y")
+          .call(d3.axisLeft(y)/*.ticks(10,"")*/.tickFormat(d3.format(".2s")) )
+        .append("text")
+          .attr("transform", "rotate(-90)")
+          .attr("y", 6)
+          .attr("dy", "0.71em")
+          .attr("text-anchor", "end");
+          //.text("Percent in Poverty");
+
+        g1.selectAll(".bar")
+          .data(dDP)
+          .enter().append("rect")
+            .attr("class", "bar")
+            .attr("x", function(d) {return x(d.name); })
+            .attr("y", function(d) {return y(d.value); })
+            .attr("width", x.bandwidth())
+            .attr("height", function(d) {return h2 - y(d.value); })
+            .style("fill", "rgb(253,141,60)");
+            // .style("fill", "rgb(0,77,168)");
+
+        g1.selectAll("text.bar")
+          .data(dDP)
+          .enter().append("text")
+            .attr("class", "barText")
+            .attr("text-anchor", "middle")
+            .attr("x", function(d){return x(d.name) + x.bandwidth()/2; })
+            .attr("y", function(d){return y(d.value) -5; })
+            //.text(function(d){ return (d.value * 100).toFixed(1) + "%"; })
+            .text(function(d){ return (d.value).toLocaleString(); })
+            .style("font-size", "12px");
+
+        g1.selectAll("text.lbl")
+          .data([totalDP])
+          .enter().append("text")
+            .attr("class", "lblText")
+            //.attr("text-anchor", "left")
+            .attr("x", w * 0.5)
+            .attr("y", h * 0.01)
+            .text(function(d) {return "Total Population 18+: " + d.toLocaleString();})
+            .style("font-size", "13px");
+      };
+
+      barChartDP('CA');
+
+      //****** UPDATE DP BAR CHART *************************
+
+      var updateBarChartDP = function(casldl) {
+        var caNestDP = nest2.filter(function(d) { return d.key == casldl; }); // console.log(caNestDP[0].values);
+        var values2DP = caNestDP[0].values; // console.log(values2DP[0]);
+        var rateDP = values2DP[0]; // console.log(rateDP);
+
+        var dDP = [
+          {name: "Hispanic, Any Race", value:values2DP[0]["hisp"]},
+          {name: "White, Non-Hispanic", value:values2DP[0]["whitenh"]},
+          {name: "Black, Non-Hispanic", value:values2DP[0]["blacknh"]},
+          {name: "American Indian/AK Non-Hispanic", value:values2DP[0]["aiannh"]},
+          {name: "Asian Non-Hispanic", value:values2DP[0]["asiannh"]},
+          {name: "Native Hawaiian/PI Non-Hispanic", value:values2DP[0]["nhopinh"]},
+          {name: "Other Race Non-Hispanic", value:values2DP[0]["othernh"]},
+          {name: "Two or More Races Non-Hispanic", value:values2DP[0]["twoplusnh"]},
+        ]; // console.log(dDP.length);
+
+        resDP=[];
+        dDP.forEach(function(d){
+          resDP.push(d.value);
+        });
+
+        // alert(d3.max(resDP));
+
+        totalDP = d3.sum(resDP);
+        
+        // x.domain(dDP.map(function(d) {return d.name; }));
+        y.domain([0, d3.max(resDP)]);
+
+        var bar = g1.selectAll(".bar").remove().exit().data(dDP);
+        
+        bar.enter().append("rect")
+          .attr("class", "bar")
+          .attr("x", function(d) {return x(d.name); })
+          .attr("y", function(d) {return y(d.value); })
+          .attr("width", x.bandwidth())
+          .attr("height", function(d) {return h2 - y(d.value); })
+          .style("fill", "rgb(253,141,60)");
+
+        barText = g1.selectAll(".barText").remove().exit().data(dDP);
+
+        barText.enter().append("text")
+            .attr("class", "barText")
+            .attr("text-anchor", "middle")
+            .attr("x", function(d){return x(d.name) + x.bandwidth()/2; })
+            .attr("y", function(d){return y(d.value) -5; })
+            //.text(function(d){ return (d.value * 100).toFixed(1) + "%"; })
+            .text(function(d){ return (d.value).toLocaleString(); })
+            .style("font-size", "12px");
+
+        lblText = g1.selectAll(".lblText").remove().exit().data([totalDP]);
+
+        lblText.enter().append("text")
+            .attr("class", "lblText")
+            //.attr("text-anchor", "left")
+            .attr("x", w * 0.5)
+            .attr("y", h * 0.01)
+            .text(function(d) {return "Total Population 18+: " + d.toLocaleString();})
+            .style("font-size", "13px");
+
+        g1.selectAll(".axis--y").remove();
+
+        g1.append("g")
+          .attr("class", "axis axis--y")
+          .call(d3.axisLeft(y)/*.ticks(10,"")*/.tickFormat(d3.format(".2s")) )
+        .append("text")
+          .attr("transform", "rotate(-90)")
+          .attr("y", 6)
+          .attr("dy", "0.71em")
+          .attr("text-anchor", "end");
+        
+      };
+
+      //*************************************************************************************************************
+      //* Difference Graph ******
+      //*************************************************************************************************************
+
+      var diffChart = function(caslsd) {
+
+        var chgDP = [
+            {name: "Hispanic, Any Race", value: (values2DP[0]["hisp"] - values2[0]["hisp"])},
+            {name: "White, Non-Hispanic", value: (values2DP[0]["whitenh"] - values2[0]["whitenh"])},
+            {name: "Black, Non-Hispanic", value: (values2DP[0]["blacknh"] - values2[0]["blacknh"])},
+            {name: "American Indian/AK Non-Hispanic", value: (values2DP[0]["aiannh"] - values2[0]["aiannh"])},
+            {name: "Asian Non-Hispanic", value: (values2DP[0]["asiannh"] - values2[0]["asiannh"])},
+            {name: "Native Hawaiian/PI Non-Hispanic", value: (values2DP[0]["nhopinh"] - values2[0]["nhopinh"])},
+            {name: "Other Race Non-Hispanic", value: (values2DP[0]["othernh"] - values2[0]["othernh"])},
+            {name: "Two or More Races Non-Hispanic", value: (values2DP[0]["twoplusnh"] - values2[0]["twoplusnh"])},
+        ]; // console.log(chgDP);
+
+        resDP=[];
+          chgDP.forEach(function(d){
+            resDP.push(d.value);
+          });
+
+        totalDP = d3.sum(resDP);
+        
+        x.domain(chgDP.map(function(d) {return d.name; }));
+        y.domain([d3.min(resDP), d3.max(resDP)]);
+
+        g2.append("g")
+          .attr("class", "axis axis--x")
+          .attr("transform", "translate(0," + h2 + ")")
+          .call(d3.axisBottom(x))
+        .selectAll(".tick text")
+          .call(wrap, x.bandwidth());
+
+        g2.append("g")
+          .attr("class", "axis axis--y")
+          .call(d3.axisLeft(y)/*.ticks(10,"")*/.tickFormat(d3.format(".2s")) )
+        .append("text")
+          .attr("transform", "rotate(-90)")
+          .attr("y", 6)
+          .attr("dy", "0.71em")
+          .attr("text-anchor", "end");
+
+        g2.selectAll(".bar")
+          .data(chgDP)
+          .enter().append("rect")
+            .attr("class", function(d,i) {return d.value < 0 ? "bar negative" : "bar positive";})
+            .attr("x", function(d) {return x(d.name); })
+            //.attr("y", function(d) {return y(d.value); })
+            .attr("y", function(d, i) {return d.value < 0 ? y(0) : y(d.value); })
+            .attr("width", x.bandwidth())
+            .attr("height", function(d, i) {return Math.abs(y(0) - y(d.value)); });
+
+        g2.selectAll("text.bar")
+          .data(chgDP)
+          .enter().append("text")
+            .attr("class", "barText")
+            .attr("text-anchor", "middle")
+            .attr("x", function(d){return x(d.name) + x.bandwidth()/2; })
+            .attr("y", function(d){return y(d.value) -5; })
+            //.text(function(d){ return (d.value * 100).toFixed(1) + "%"; })
+            .text(function(d){ return (d.value).toLocaleString(); })
+            .style("font-size", "12px");
+
+        g3.selectAll("text.lbl")
+          .data([totalDP])
+          .enter().append("text")
+            .attr("class", "lblText")
+            //.attr("text-anchor", "left")
+            .attr("x", w * 0.5)
+            // .attr("y", h * 0.1)
+            .text(function(d) {return "Change Population 18+: " + d.toLocaleString();})
+            .style("font-size", "13px");
+        
+        g2.append("g")
+          .attr("class","zeroLine")
+          .append("line")
+          .attr("x1", 0)
+          .attr("x2", w)
+//          .attr("width",w)
+          .attr("y1", y(0))
+          .attr("y2", y(0))
+          .style("stroke", "#BDBDBD");
+
+      };
+
+      diffChart('CA');
+
+      //****** UPDATE CHANGE BAR CHART *************************
+
+      var updateBarChartChg = function(caslsd) {
+
+        // DP data
+        var caNestDP = nest2.filter(function(d) { return d.key == caslsd; }); //console.log(caNest[0].values["hisp"]);
+        var values2DP = caNestDP[0].values; // console.log(values2DP[0]);
+        var rateDP = values2DP[0]; // console.log(rateDP);
+
+        // SF1 data
+        var caNest = nest.filter(function(d) { return d.key == caslsd; }); //console.log(caNest[0].values["hisp"]);
+        var values2 = caNest[0].values; // console.log(values2[0]);
+        var rate = values2[0]; // console.log(rate);
+
+        var chgDP = [
+            {name: "Hispanic, Any Race", value: (values2DP[0]["hisp"] - values2[0]["hisp"])},
+            {name: "White, Non-Hispanic", value: (values2DP[0]["whitenh"] - values2[0]["whitenh"])},
+            {name: "Black, Non-Hispanic", value: (values2DP[0]["blacknh"] - values2[0]["blacknh"])},
+            {name: "American Indian/AK Non-Hispanic", value: (values2DP[0]["aiannh"] - values2[0]["aiannh"])},
+            {name: "Asian Non-Hispanic", value: (values2DP[0]["asiannh"] - values2[0]["asiannh"])},
+            {name: "Native Hawaiian/PI Non-Hispanic", value: (values2DP[0]["nhopinh"] - values2[0]["nhopinh"])},
+            {name: "Other Race Non-Hispanic", value: (values2DP[0]["othernh"] - values2[0]["othernh"])},
+            {name: "Two or More Races Non-Hispanic", value: (values2DP[0]["twoplusnh"] - values2[0]["twoplusnh"])},
+        ]; // console.log(chgDP);
+
+        resDP=[];
+        chgDP.forEach(function(d){
+          resDP.push(d.value);
+        });
+
+        // alert(d3.max(resDP));
+
+        totalDP = d3.sum(resDP);
+
+        y.domain([d3.min(resDP), d3.max(resDP)]);
+
+        var bar = g2.selectAll(".bar").remove().exit().data(chgDP);
+        
+        bar.enter().append("rect")
+            .attr("class", function(d,i) {return d.value < 0 ? "bar negative" : "bar positive";})
+            .attr("x", function(d) {return x(d.name); })
+            .attr("y", function(d, i) {return d.value < 0 ? y(0) : y(d.value); })
+            .attr("width", x.bandwidth())
+            .attr("height", function(d, i) {return Math.abs(y(0) - y(d.value)); });
+
+        barText = g2.selectAll(".barText").remove().exit().data(chgDP);
+
+        barText.enter().append("text")
+            .attr("class", "barText")
+            .attr("text-anchor", "middle")
+            .attr("x", function(d){return x(d.name) + x.bandwidth()/2; })
+            .attr("y", function(d){return y(d.value) -5; })
+            //.text(function(d){ return (d.value * 100).toFixed(1) + "%"; })
+            .text(function(d){ return (d.value).toLocaleString(); })
+            .style("font-size", "12px");
+
+        lblText = g3.selectAll(".lblText").remove().exit().data([totalDP]);
+
+        lblText.enter().append("text")
+            .attr("class", "lblText")
+            //.attr("text-anchor", "left")
+            .attr("x", w * 0.5)
+            //.attr("y", h * 0.005)
+            .text(function(d) {return "Total Population Change: " + d.toLocaleString();})
+            .style("font-size", "13px");
+
+        g2.selectAll(".axis--y").remove();
+
+        g2.append("g")
+          .attr("class", "axis axis--y")
+          .call(d3.axisLeft(y)/*.ticks(10,"")*/.tickFormat(d3.format(".2s")) )
+        .append("text")
+          .attr("transform", "rotate(-90)")
+          .attr("y", 6)
+          .attr("dy", "0.71em")
+          .attr("text-anchor", "end");
+        
+        // Zero line
+        g2.select(".zeroLine").remove();
+
+        g2.append("g")
+          .attr("class","zeroLine")
+          .append("line")
+          .attr("x1", 0)
+          .attr("x2", w)
+//          .attr("width",w)
+          .attr("y1", y(0))
+          .attr("y2", y(0))
+          .style("stroke", "white");
+
+      }
+
+      //*************************************************************************************************************
+      //* MAP ******
+      //*************************************************************************************************************
+
+      var data1 = {},
+      values=[];
+      for (j=0; j<data.length; j++) {
+          data1[data[j].SLSD] = data[j].chg;
+          values.push(data[j].chg);
+      }
+
+      brew.setSeries(values);
+      brew.setNumClasses(5);
+      brew.classify("jenks")
+      brew.setColorCode("RdYlBu")
+
+      function mapstyle(feature) {
+        return{
+          weight: 1,
+          opacity: 1,
+          color: 'white',
+          fillOpacity: 0.5,
+          fillColor: brew.getColorInRange(data1[feature.properties.SLDLST])
+        };
+      }
+
+      var map = L.map('map');
+
+      var cartoPositron = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+	      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+	      subdomains: 'abcd',
+	      maxZoom: 19
+      }).addTo(map);
+
+      var layerGroup = L.layerGroup().addTo(map);
+
+      var jLayer = L.geoJSON(casldl, {
+        style: mapstyle,
+        onEachFeature: function(feature, layer) {
+            for(i=0; i<data.length; i++){
+              if (feature.properties.SLDLST == data[i].SLSD) {
+                feature.properties.chg = data[i].chg;
+              }
+            }
+            layer.bindTooltip("Assembly District "+feature.properties.NAME+"<br>Change in Population: "+feature.properties.chg)
+          }
+      }).addTo(layerGroup);
+
+      map.fitBounds(jLayer.getBounds());
+
+      map.on('click', function(e){
+        updateBarChartDP('CA');
+        updateBarChartSF1('CA');
+        updateBarChartChg('CA');
+        document.getElementById("dpTag").innerHTML = "Differential Privacy - Population 18 years and Over by Race - California";
+        document.getElementById("sf1Tag").innerHTML = "SF1 - Population 18 Years and Over by Race - California";
+        document.getElementById("chgTag").innerHTML = "Difference (DP - SF1) - Population 18 Years and Over by Race - California";
+        // alert('click on the map')
+      })
+
+      jLayer.on('click',function(e){
+        L.DomEvent.stopPropagation(e);
+        updateBarChartDP(e.layer.feature.properties.SLDLST);
+        updateBarChartSF1(e.layer.feature.properties.SLDLST);
+        updateBarChartChg(e.layer.feature.properties.SLDLST);
+        document.getElementById("dpTag").innerHTML = "Differential Privacy - Population 18 Years and Over by Race - Assembly District "+e.layer.feature.properties.NAME;
+        document.getElementById("sf1Tag").innerHTML = "SF1 - Population 18 Years and Over by Race - Assembly District "+e.layer.feature.properties.NAME;
+        document.getElementById("chgTag").innerHTML = "Difference (DP - SF1) - Population 18 Years and Over by Race - Assembly District "+e.layer.feature.properties.NAME;
+      })
+
+      //********************************************************
+      //* ADD LEGEND
+      //********************************************************
+
+      var legend = L.control({position: 'bottomleft'});
+
+      legend.onAdd = function (map) {
+        var div = L.DomUtil.create('div', 'info legend'),
+          percents = brew.getBreaks(),
+          labels = ['<strong>Total Population</strong>'],
+          from, to;
+
+        for (var i = 0; i < (percents.length); i++) {
+          // console.log(i);
+          from = percents[i];
+          to = percents[i + 1];
+          if(to) {
+          labels.push(
+            '<i style="background:' + brew.getColorInRange(to) + '"></i> ' +
+            from.toLocaleString(0) + ' to ' + to.toLocaleString(0));
+          }
+        }
+
+        div.innerHTML = labels.join('<br>');
+        return div;
+      };
+      legend.addTo(map);
+
+    // ******************************************************************************
+    // *** Map on-click
+    //*******************************************************************************      
+      // map.on('click', function(event) {
+      //   alert(event.feature.properties);
+      // })
+
+    // ******************************************************************************
+    // *** Hispanic View
+    //*******************************************************************************
+
+    hispLayer = function() {
+
+      layerGroup.clearLayers();
+
+      var dataH = {},
+      valuesH=[];
+      for (j=0; j<data.length; j++) {
+          dataH[data[j].SLSD] = data[j].hisp;
+          valuesH.push(data[j].hisp);
+      }
+
+      var brewH = new classyBrew();
+
+      brewH.setSeries(valuesH);
+      brewH.setNumClasses(5);
+      brewH.classify("jenks")
+      brewH.setColorCode("RdYlBu")      
+
+      function mapstyleH(feature) {
+        return{
+          weight: 1,
+          opacity: 1,
+          color: 'white',
+          fillOpacity: 0.7,
+          fillColor: brewH.getColorInRange(dataH[feature.properties.SLDLST])
+        };
+      }
+
+      var hLayer = L.geoJson(casldl, {
+        style: mapstyleH, 
+        onEachFeature: function(feature, layer) {
+            for(i=0; i<data.length; i++){
+              if (feature.properties.SLDLST == data[i].SLSD) {
+                feature.properties.hisp = data[i].hisp;
+              }
+            }
+            layer.bindTooltip("Assembly District "+feature.properties.NAME+"<br>Change in Population: "+feature.properties.hisp.toLocaleString())
+            // console.log(feature.properties.chg);
+          }
+      }).addTo(layerGroup);
+
+      legend.remove();
+
+      legend.onAdd = function (map) {
+        var div = L.DomUtil.create('div', 'info legend'),
+          percents = brewH.getBreaks(),
+          labels = ['<strong>Hispanic, Any Race</strong>'],
+          from, to;
+
+        for (var i = 0; i < (percents.length); i++) {
+          // console.log(i);
+          from = percents[i];
+          to = percents[i + 1];
+          if(to) {
+          labels.push(
+            '<i style="background:' + brewH.getColorInRange(to) + '"></i> ' +
+            from.toLocaleString() + ' to ' + to.toLocaleString());
+          }
+        }
+
+        div.innerHTML = labels.join('<br>');
+        return div;
+      };
+      legend.addTo(map);
+    
+      hLayer.on('click',function(e){
+        L.DomEvent.stopPropagation(e);
+        updateBarChartDP(e.layer.feature.properties.SLDLST);
+        updateBarChartSF1(e.layer.feature.properties.SLDLST);
+        updateBarChartChg(e.layer.feature.properties.SLDLST);
+        document.getElementById("dpTag").innerHTML = "Differential Privacy - Population 18 Years and Over by Race - Assembly District "+e.layer.feature.properties.NAME;
+        document.getElementById("sf1Tag").innerHTML = "SF1 - Population 18 Years and Over by Race - Assembly District "+e.layer.feature.properties.NAME;
+        document.getElementById("chgTag").innerHTML = "Difference (DP - SF1) - Population 18 Years and Over by Race - Assembly District "+e.layer.feature.properties.NAME;
+      });
+
+    }
+
+    // ******************************************************************************
+    // *** White NH View
+    //*******************************************************************************
+
+    wnhLayer = function() {
+
+      layerGroup.clearLayers();
+
+      var dataH = {},
+      valuesH=[];
+      for (j=0; j<data.length; j++) {
+          dataH[data[j].SLSD] = data[j].whitenh;
+          valuesH.push(data[j].whitenh);
+      }
+
+      var brewH = new classyBrew();
+
+      brewH.setSeries(valuesH);
+      brewH.setNumClasses(5);
+      brewH.classify("jenks")
+      brewH.setColorCode("RdYlBu")      
+
+      function mapstyleH(feature) {
+        return{
+          weight: 1,
+          opacity: 1,
+          color: 'white',
+          fillOpacity: 0.7,
+          fillColor: brewH.getColorInRange(dataH[feature.properties.SLDLST])
+        };
+      }
+
+      var wLayer = L.geoJson(casldl, {
+        style: mapstyleH, 
+        onEachFeature: function(feature, layer) {
+            for(i=0; i<data.length; i++){
+              if (feature.properties.SLDLST == data[i].SLSD) {
+                feature.properties.whitenh = data[i].whitenh;
+              }
+            }
+            layer.bindTooltip("Assembly District "+feature.properties.NAME+"<br>Change in Population: "+feature.properties.whitenh.toLocaleString())
+            // console.log(feature.properties.chg);
+          }
+      }).addTo(layerGroup);
+      legend.remove();
+
+      legend.onAdd = function (map) {
+        var div = L.DomUtil.create('div', 'info legend'),
+          percents = brewH.getBreaks(),
+          labels = ['<strong>White, Non-Hispanic</strong>'],
+          from, to;
+
+        for (var i = 0; i < (percents.length); i++) {
+          // console.log(i);
+          from = percents[i];
+          to = percents[i + 1];
+          if(to) {
+          labels.push(
+            '<i style="background:' + brewH.getColorInRange(to) + '"></i> ' +
+            from.toLocaleString() + ' to ' + to.toLocaleString());
+          }
+        }
+
+        div.innerHTML = labels.join('<br>');
+        return div;
+      };
+      legend.addTo(map);
+
+      wLayer.on('click',function(e){
+        L.DomEvent.stopPropagation(e);
+        updateBarChartDP(e.layer.feature.properties.SLDLST);
+        updateBarChartSF1(e.layer.feature.properties.SLDLST);
+        updateBarChartChg(e.layer.feature.properties.SLDLST);
+        document.getElementById("dpTag").innerHTML = "Differential Privacy - Population 18 Years and Over by Race - Assembly District "+e.layer.feature.properties.NAME;
+        document.getElementById("sf1Tag").innerHTML = "SF1 - Population 18 Years and Over by Race - Assembly District "+e.layer.feature.properties.NAME;
+        document.getElementById("chgTag").innerHTML = "Difference (DP - SF1) - Population 18 Years and Over by Race - Assembly District "+e.layer.feature.properties.NAME;
+      });
+
+    }
+
+    // ******************************************************************************
+    // *** Black NH View
+    //*******************************************************************************
+
+    bnhLayer = function() {
+
+      layerGroup.clearLayers();
+
+      var dataH = {},
+      valuesH=[];
+      for (j=0; j<data.length; j++) {
+          dataH[data[j].SLSD] = data[j].blacknh;
+          valuesH.push(data[j].blacknh);
+      }
+
+      var brewH = new classyBrew();
+
+      brewH.setSeries(valuesH);
+      brewH.setNumClasses(5);
+      brewH.classify("jenks")
+      brewH.setColorCode("RdYlBu")      
+
+      function mapstyleH(feature) {
+        return{
+          weight: 1,
+          opacity: 1,
+          color: 'white',
+          fillOpacity: 0.7,
+          fillColor: brewH.getColorInRange(dataH[feature.properties.SLDLST])
+        };
+      }
+
+      var bLayer = L.geoJson(casldl, {
+        style: mapstyleH, 
+        onEachFeature: function(feature, layer) {
+            for(i=0; i<data.length; i++){
+              if (feature.properties.SLDLST == data[i].SLSD) {
+                feature.properties.blacknh = data[i].blacknh;
+              }
+            }
+            layer.bindTooltip("Assembly District "+feature.properties.NAME+"<br>Change in Population: "+feature.properties.blacknh.toLocaleString())
+            // console.log(feature.properties.chg);
+          }
+      }).addTo(layerGroup);
+      console.log(bLayer)
+      legend.remove();
+
+      legend.onAdd = function (map) {
+        var div = L.DomUtil.create('div', 'info legend'),
+          percents = brewH.getBreaks(),
+          labels = ['<strong>Black, Non-Hispanic</strong>'],
+          from, to;
+
+        for (var i = 0; i < (percents.length); i++) {
+          // console.log(i);
+          from = percents[i];
+          to = percents[i + 1];
+          if(to) {
+          labels.push(
+            '<i style="background:' + brewH.getColorInRange(to) + '"></i> ' +
+            from.toLocaleString() + ' to ' + to.toLocaleString());
+          }
+        }
+
+        div.innerHTML = labels.join('<br>');
+        return div;
+      };
+      legend.addTo(map);
+
+      bLayer.on('click',function(e){
+        L.DomEvent.stopPropagation(e);
+        updateBarChartDP(e.layer.feature.properties.SLDLST);
+        updateBarChartSF1(e.layer.feature.properties.SLDLST);
+        updateBarChartChg(e.layer.feature.properties.SLDLST);
+        document.getElementById("dpTag").innerHTML = "Differential Privacy - Population 18 Years and Over by Race - Assembly District "+e.layer.feature.properties.NAME;
+        document.getElementById("sf1Tag").innerHTML = "SF1 - Population 18 Years and Over by Race - Assembly District "+e.layer.feature.properties.NAME;
+        document.getElementById("chgTag").innerHTML = "Difference (DP - SF1) - Population 18 Years and Over by Race - Assembly District "+e.layer.feature.properties.NAME;
+      });
+
+    }
+
+    // ******************************************************************************
+    // *** American Indian NH View
+    //*******************************************************************************
+
+    aiannhLayer = function() {
+
+      layerGroup.clearLayers();
+
+      var dataH = {},
+      valuesH=[];
+      for (j=0; j<data.length; j++) {
+          dataH[data[j].SLSD] = data[j].aiannh;
+          valuesH.push(data[j].aiannh);
+      }
+
+      var brewH = new classyBrew();
+
+      brewH.setSeries(valuesH);
+      brewH.setNumClasses(5);
+      brewH.classify("jenks")
+      brewH.setColorCode("RdYlBu")      
+
+      function mapstyleH(feature) {
+        return{
+          weight: 1,
+          opacity: 1,
+          color: 'white',
+          fillOpacity: 0.7,
+          fillColor: brewH.getColorInRange(dataH[feature.properties.SLDLST])
+        };
+      }
+
+      var AmInLayer = L.geoJson(casldl, {
+        style: mapstyleH, 
+        onEachFeature: function(feature, layer) {
+            for(i=0; i<data.length; i++){
+              if (feature.properties.SLDLST == data[i].SLSD) {
+                feature.properties.aiannh = data[i].aiannh;
+
+              }
+            }
+            layer.bindTooltip("Assembly District "+feature.properties.NAME+"<br>Change in Population: "+feature.properties.aiannh.toLocaleString())
+            // console.log(feature.properties.chg);
+          }
+      }).addTo(layerGroup);
+
+      legend.remove();
+
+      legend.onAdd = function (map) {
+        var div = L.DomUtil.create('div', 'info legend'),
+          percents = brewH.getBreaks(),
+          labels = ['<strong>American Indian and<br>Native Alaskan,<br>Non-Hispanic</strong>'],
+          from, to;
+
+        for (var i = 0; i < (percents.length); i++) {
+          // console.log(i);
+          from = percents[i];
+          to = percents[i + 1];
+          if(to) {
+          labels.push(
+            '<i style="background:' + brewH.getColorInRange(to) + '"></i> ' +
+            from.toLocaleString() + ' to ' + to.toLocaleString());
+          }
+        }
+
+        div.innerHTML = labels.join('<br>');
+        return div;
+      };
+      legend.addTo(map);
+
+      AmInLayer.on('click',function(e){
+        L.DomEvent.stopPropagation(e);
+        updateBarChartDP(e.layer.feature.properties.SLDLST);
+        updateBarChartSF1(e.layer.feature.properties.SLDLST);
+        updateBarChartChg(e.layer.feature.properties.SLDLST);
+        document.getElementById("dpTag").innerHTML = "Differential Privacy - Population 18 Years and Over by Race - Assembly District "+e.layer.feature.properties.NAME;
+        document.getElementById("sf1Tag").innerHTML = "SF1 - Population 18 Years and Over by Race - Assembly District "+e.layer.feature.properties.NAME;
+        document.getElementById("chgTag").innerHTML = "Difference (DP - SF1) - Population 18 Years and Over by Race - Assembly District "+e.layer.feature.properties.NAME;
+      });
+
+    }
+
+
+    // ******************************************************************************
+    // *** Asian NH View
+    //*******************************************************************************
+
+    anhLayer = function() {
+
+      layerGroup.clearLayers();
+
+      var dataH = {},
+      valuesH=[];
+      for (j=0; j<data.length; j++) {
+          dataH[data[j].SLSD] = data[j].asiannh;
+          valuesH.push(data[j].asiannh);
+      }
+
+      var brewH = new classyBrew();
+
+      brewH.setSeries(valuesH);
+      brewH.setNumClasses(5);
+      brewH.classify("jenks")
+      brewH.setColorCode("RdYlBu")      
+
+      function mapstyleH(feature) {
+        return{
+          weight: 1,
+          opacity: 1,
+          color: 'white',
+          fillOpacity: 0.7,
+          fillColor: brewH.getColorInRange(dataH[feature.properties.SLDLST])
+        };
+      }
+
+      var aLayer = L.geoJson(casldl, {
+        style: mapstyleH, 
+        onEachFeature: function(feature, layer) {
+            for(i=0; i<data.length; i++){
+              if (feature.properties.SLDLST == data[i].SLSD) {
+                feature.properties.asiannh = data[i].asiannh;
+
+              }
+            }
+            layer.bindTooltip("Assembly District "+feature.properties.NAME+"<br>Change in Population: "+feature.properties.asiannh.toLocaleString())
+            // console.log(feature.properties.chg);
+          }
+      }).addTo(layerGroup);
+
+      legend.remove();
+
+      legend.onAdd = function (map) {
+        var div = L.DomUtil.create('div', 'info legend'),
+          percents = brewH.getBreaks(),
+          labels = ['<strong>Asian, Non-Hispanic</strong>'],
+          from, to;
+
+        for (var i = 0; i < (percents.length); i++) {
+          // console.log(i);
+          from = percents[i];
+          to = percents[i + 1];
+          if(to) {
+          labels.push(
+            '<i style="background:' + brewH.getColorInRange(to) + '"></i> ' +
+            from.toLocaleString() + ' to ' + to.toLocaleString());
+          }
+        }
+
+        div.innerHTML = labels.join('<br>');
+        return div;
+      };
+      legend.addTo(map);
+
+      aLayer.on('click',function(e){
+        L.DomEvent.stopPropagation(e);
+        updateBarChartDP(e.layer.feature.properties.SLDLST);
+        updateBarChartSF1(e.layer.feature.properties.SLDLST);
+        updateBarChartChg(e.layer.feature.properties.SLDLST);
+        document.getElementById("dpTag").innerHTML = "Differential Privacy - Population 18 Years and Over by Race - Assembly District "+e.layer.feature.properties.NAME;
+        document.getElementById("sf1Tag").innerHTML = "SF1 - Population 18 Years and Over by Race - Assembly District "+e.layer.feature.properties.NAME;
+        document.getElementById("chgTag").innerHTML = "Difference (DP - SF1) - Population 18 Years and Over by Race - Assembly District "+e.layer.feature.properties.NAME;
+      });
+
+    }    
+
+    // ******************************************************************************
+    // *** Native Hawaiian NH View
+    //*******************************************************************************
+
+    nhopiLayer = function() {
+
+      layerGroup.clearLayers();
+
+      var dataH = {},
+      valuesH=[];
+      for (j=0; j<data.length; j++) {
+          dataH[data[j].SLSD] = data[j].nhopinh;
+          valuesH.push(data[j].nhopinh);
+      }
+
+      var brewH = new classyBrew();
+
+      brewH.setSeries(valuesH);
+      brewH.setNumClasses(5);
+      brewH.classify("jenks")
+      brewH.setColorCode("RdYlBu")      
+
+      function mapstyleH(feature) {
+        return{
+          weight: 1,
+          opacity: 1,
+          color: 'white',
+          fillOpacity: 0.7,
+          fillColor: brewH.getColorInRange(dataH[feature.properties.SLDLST])
+        };
+      }
+
+      var nhLayer = L.geoJson(casldl, {
+        style: mapstyleH, 
+        onEachFeature: function(feature, layer) {
+            for(i=0; i<data.length; i++){
+              if (feature.properties.SLDLST == data[i].SLSD) {
+                feature.properties.nhopinh = data[i].nhopinh;
+
+              }
+            }
+            layer.bindTooltip("Assembly District "+feature.properties.NAME+"<br>Change in Population: "+feature.properties.nhopinh.toLocaleString())
+            // console.log(feature.properties.chg);
+          }
+      }).addTo(layerGroup);
+
+      legend.remove();
+
+      legend.onAdd = function (map) {
+        var div = L.DomUtil.create('div', 'info legend'),
+          percents = brewH.getBreaks(),
+          labels = ['<strong>Native Hawaiian and<br>Other Pacific Islander,<br>Non-Hispanic</strong>'],
+          from, to;
+
+        for (var i = 0; i < (percents.length); i++) {
+          // console.log(i);
+          from = percents[i];
+          to = percents[i + 1];
+          if(to) {
+          labels.push(
+            '<i style="background:' + brewH.getColorInRange(to) + '"></i> ' +
+            from.toLocaleString() + ' to ' + to.toLocaleString());
+          }
+        }
+
+        div.innerHTML = labels.join('<br>');
+        return div;
+      };
+      legend.addTo(map);
+
+      nhLayer.on('click',function(e){
+        L.DomEvent.stopPropagation(e);
+        updateBarChartDP(e.layer.feature.properties.SLDLST);
+        updateBarChartSF1(e.layer.feature.properties.SLDLST);
+        updateBarChartChg(e.layer.feature.properties.SLDLST);
+        document.getElementById("dpTag").innerHTML = "Differential Privacy - Population 18 Years and Over by Race - Assembly District "+e.layer.feature.properties.NAME;
+        document.getElementById("sf1Tag").innerHTML = "SF1 - Population 18 Years and Over by Race - Assembly District "+e.layer.feature.properties.NAME;
+        document.getElementById("chgTag").innerHTML = "Difference (DP - SF1) - Population 18 Years and Over by Race - Assembly District "+e.layer.feature.properties.NAME;
+      });
+    
+    }    
+
+    // ******************************************************************************
+    // *** Other NH View
+    //*******************************************************************************
+
+    onhLayer = function() {
+
+      layerGroup.clearLayers();
+
+      var dataH = {},
+      valuesH=[];
+      for (j=0; j<data.length; j++) {
+          dataH[data[j].SLSD] = data[j].othernh;
+          valuesH.push(data[j].othernh);
+      }
+
+      var brewH = new classyBrew();
+
+      brewH.setSeries(valuesH);
+      brewH.setNumClasses(5);
+      brewH.classify("jenks")
+      brewH.setColorCode("RdYlBu")      
+
+      function mapstyleH(feature) {
+        return{
+          weight: 1,
+          opacity: 1,
+          color: 'white',
+          fillOpacity: 0.7,
+          fillColor: brewH.getColorInRange(dataH[feature.properties.SLDLST])
+        };
+      }
+
+      var oLayer = L.geoJson(casldl, {
+        style: mapstyleH, 
+        onEachFeature: function(feature, layer) {
+            for(i=0; i<data.length; i++){
+              if (feature.properties.SLDLST == data[i].SLSD) {
+                feature.properties.othernh = data[i].othernh;
+
+              }
+            }
+            layer.bindTooltip("Assembly District "+feature.properties.NAME+"<br>Change in Population: "+feature.properties.othernh.toLocaleString())
+            // console.log(feature.properties.chg);
+          }
+      }).addTo(layerGroup);
+
+      legend.remove();
+
+      legend.onAdd = function (map) {
+        var div = L.DomUtil.create('div', 'info legend'),
+          percents = brewH.getBreaks(),
+          labels = ['<strong>Other, Non-Hispanic</strong>'],
+          from, to;
+
+        for (var i = 0; i < (percents.length); i++) {
+          // console.log(i);
+          from = percents[i];
+          to = percents[i + 1];
+          if(to) {
+          labels.push(
+            '<i style="background:' + brewH.getColorInRange(to) + '"></i> ' +
+            from.toLocaleString() + ' to ' + to.toLocaleString());
+          }
+        }
+
+        div.innerHTML = labels.join('<br>');
+        return div;
+      };
+      legend.addTo(map);
+
+      oLayer.on('click',function(e){
+        L.DomEvent.stopPropagation(e);
+        updateBarChartDP(e.layer.feature.properties.SLDLST);
+        updateBarChartSF1(e.layer.feature.properties.SLDLST);
+        updateBarChartChg(e.layer.feature.properties.SLDLST);
+        document.getElementById("dpTag").innerHTML = "Differential Privacy - Population 18 Years and Over by Race - Assembly District "+e.layer.feature.properties.NAME;
+        document.getElementById("sf1Tag").innerHTML = "SF1 - Population 18 Years and Over by Race - Assembly District "+e.layer.feature.properties.NAME;
+        document.getElementById("chgTag").innerHTML = "Difference (DP - SF1) - Population 18 Years and Over by Race - Assembly District "+e.layer.feature.properties.NAME;
+      });
+
+    }   
+
+    // ******************************************************************************
+    // *** Two or More NH View
+    //*******************************************************************************
+
+    tomnhLayer = function() {
+
+      layerGroup.clearLayers();
+
+      var dataH = {},
+      valuesH=[];
+      for (j=0; j<data.length; j++) {
+          dataH[data[j].SLSD] = data[j].twoplusnh;
+          valuesH.push(data[j].twoplusnh);
+      }
+
+      var brewH = new classyBrew();
+
+      brewH.setSeries(valuesH);
+      brewH.setNumClasses(5);
+      brewH.classify("jenks")
+      brewH.setColorCode("RdYlBu")      
+
+      function mapstyleH(feature) {
+        return{
+          weight: 1,
+          opacity: 1,
+          color: 'white',
+          fillOpacity: 0.7,
+          fillColor: brewH.getColorInRange(dataH[feature.properties.SLDLST])
+        };
+      }
+
+      var twoLayer = L.geoJson(casldl, {
+        style: mapstyleH, 
+        onEachFeature: function(feature, layer) {
+            for(i=0; i<data.length; i++){
+              if (feature.properties.SLDLST == data[i].SLSD) {
+                feature.properties.twoplusnh = data[i].twoplusnh;
+
+              }
+            }
+            layer.bindTooltip("Assembly District "+feature.properties.NAME+"<br>Change in Population: "+feature.properties.twoplusnh.toLocaleString())
+            // console.log(feature.properties.chg);
+          }
+      }).addTo(layerGroup);
+
+      legend.remove();
+
+      legend.onAdd = function (map) {
+        var div = L.DomUtil.create('div', 'info legend'),
+          percents = brewH.getBreaks(),
+          labels = ['<strong>Two or More Races,<br>Non-Hispanic</strong>'],
+          from, to;
+
+        for (var i = 0; i < (percents.length); i++) {
+          // console.log(i);
+          from = percents[i];
+          to = percents[i + 1];
+          if(to) {
+          labels.push(
+            '<i style="background:' + brewH.getColorInRange(to) + '"></i> ' +
+            from.toLocaleString() + ' to ' + to.toLocaleString());
+          }
+        }
+
+        div.innerHTML = labels.join('<br>');
+        return div;
+      };
+      legend.addTo(map);
+
+      twoLayer.on('click',function(e){
+        L.DomEvent.stopPropagation(e);
+        updateBarChartDP(e.layer.feature.properties.SLDLST);
+        updateBarChartSF1(e.layer.feature.properties.SLDLST);
+        updateBarChartChg(e.layer.feature.properties.SLDLST);
+        document.getElementById("dpTag").innerHTML = "Differential Privacy - Population 18 Years and Over by Race - Assembly District "+e.layer.feature.properties.NAME;
+        document.getElementById("sf1Tag").innerHTML = "SF1 - Population 18 Years and Over by Race - Assembly District "+e.layer.feature.properties.NAME;
+        document.getElementById("chgTag").innerHTML = "Difference (DP - SF1) - Population 18 Years and Over by Race - Assembly District "+e.layer.feature.properties.NAME;
+      });
+      
+    }   
+
+    // ******************************************************************************
+    // *** Original View
+    //********************************************************************************
+    
+    origLayer = function() {
+
+      layerGroup.clearLayers();
+
+      var data1 = {},
+      values=[];
+      for (j=0; j<data.length; j++) {
+          data1[data[j].SLSD] = data[j].chg;
+          values.push(data[j].chg);
+      }
+
+      var brew = new classyBrew();
+
+      brew.setSeries(values);
+      brew.setNumClasses(5);
+      brew.classify("jenks")
+      brew.setColorCode("RdYlBu")      
+
+      function mapstyle(feature) {
+        return{
+          weight: 1,
+          opacity: 1,
+          color: 'white',
+          fillOpacity: 0.7,
+          fillColor: brew.getColorInRange(data1[feature.properties.SLDLST])
+        };
+      }
+
+      var origLayer = L.geoJson(casldl, {
+        style: mapstyle, 
+        onEachFeature: function(feature, layer) {
+            for(i=0; i<53; i++){
+              if (feature.properties.SLDLST == data[i].SLSD) {
+                feature.properties.chg = data[i].chg;
+                feature.properties.hisp = data[i].hisp;
+              }
+            }
+            layer.bindTooltip("Assembly District "+feature.properties.NAME+"<br>Change in Population: "+feature.properties.chg.toLocaleString())
+            // console.log(feature.properties.chg);
+          }
+      }).addTo(layerGroup);
+
+      legend.remove();
+
+      legend.onAdd = function (map) {
+        var div = L.DomUtil.create('div', 'info legend'),
+          percents = brew.getBreaks(),
+          labels = ['<strong>Total Population</strong>'],
+          from, to;
+
+        for (var i = 0; i < (percents.length); i++) {
+          // console.log(i);
+          from = percents[i];
+          to = percents[i + 1];
+          if(to) {
+          labels.push(
+            '<i style="background:' + brew.getColorInRange(to) + '"></i> ' +
+            from.toLocaleString() + ' to ' + to.toLocaleString());
+          }
+        }
+
+        div.innerHTML = labels.join('<br>');
+        return div;
+      };
+      legend.addTo(map);
+
+      origLayer.on('click',function(e){
+        L.DomEvent.stopPropagation(e);
+        updateBarChartDP(e.layer.feature.properties.SLDLST);
+        updateBarChartSF1(e.layer.feature.properties.SLDLST);
+        updateBarChartChg(e.layer.feature.properties.SLDLST);
+        document.getElementById("dpTag").innerHTML = "Differential Privacy - Population 18 Years and Over by Race - Assembly District "+e.layer.feature.properties.NAME;
+        document.getElementById("sf1Tag").innerHTML = "SF1 - Population 18 Years and Over by Race - Assembly District "+e.layer.feature.properties.NAME;
+        document.getElementById("chgTag").innerHTML = "Difference (DP - SF1) - Population 18 Years and Over by Race - Assembly District "+e.layer.feature.properties.NAME;
+      });
+
+    }  
+
+    // *********************************************************************
+    // onchange function
+    // *********************************************************************
+
+    $("#raceEthnicity").on('change', function(){
+      // console.log($(this).val());
+
+      if ($(this).val() == 'hisp'){
+        hispLayer();
+      };
+
+      if ($(this).val() == 'tp'){
+        origLayer();
+      };
+
+      if ($(this).val() == 'wnh'){
+        wnhLayer();
+      };
+
+      if ($(this).val() == 'bnh'){
+        bnhLayer();
+      };
+
+      if ($(this).val() == 'aiannh'){
+        aiannhLayer();
+      };
+
+      if ($(this).val() == 'anh'){
+        anhLayer();
+      };
+
+      if ($(this).val() == 'nhpinh'){
+        nhopiLayer();
+      };
+
+      if ($(this).val() == 'onh'){
+        onhLayer();
+      };
+
+      if ($(this).val() == 'tomnh'){
+        tomnhLayer();
+      };      
+
+    });       
+
+    // *********************************************************************
+    // Miscellaneous functions
+    // *********************************************************************
+
+    function wrap(text, width) {
+	  text.each(function() {
+	    var text = d3.select(this),
+		words = text.text().split(/\s+/).reverse(),
+		word,
+		line = [],
+		lineNumber = 0,
+		lineHeight = 1.1, // ems
+		y = text.attr("y"),
+		dy = parseFloat(text.attr("dy")),
+		tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em")
+	    while (word = words.pop()) {
+	      line.push(word)
+	      tspan.text(line.join(" "))
+	      if (tspan.node().getComputedTextLength() > width) {
+		line.pop()
+		tspan.text(line.join(" "))
+		line = [word]
+		/* tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", `${++lineNumber * lineHeight + dy}em`).text(word) */
+		tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word)
+	      }
+	    }
+	  })
+	}
+
+    </script>
+  </body>
+</html>
